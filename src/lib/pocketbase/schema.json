@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-18T23:11:25.341Z",
+  "generatedAt": "2026-11-18T23:37:54.266Z",
   "collections": [
     {
       "name": "users",
@@ -117,6 +117,12 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "percentual_aviso",
+          "type": "number",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": ["CREATE INDEX idx_materias_user_created ON materias (user_id, created DESC)"]
@@ -188,6 +194,56 @@
       ],
       "indexes": [
         "CREATE INDEX idx_aulas_user_materia_data ON aulas (user_id, materia_id, data DESC)"
+      ]
+    },
+    {
+      "name": "configuracoes",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && user_id = @request.auth.id",
+        "view": "@request.auth.id != '' && user_id = @request.auth.id",
+        "create": "@request.auth.id != '' && @request.body.user_id = @request.auth.id",
+        "update": "@request.auth.id != '' && user_id = @request.auth.id",
+        "delete": "@request.auth.id != '' && user_id = @request.auth.id"
+      },
+      "fields": [
+        {
+          "name": "user_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "chave",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["aviso_preventivo"]
+        },
+        {
+          "name": "valor",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_configuracoes_user_chave ON configuracoes (user_id, chave)"
       ]
     }
   ]

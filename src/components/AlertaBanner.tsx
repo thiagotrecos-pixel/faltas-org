@@ -5,9 +5,14 @@ import { AlertTriangle, AlertOctagon, CheckCircle2, ArrowRight } from 'lucide-re
 
 interface AlertaBannerProps {
   statsMaterias: MateriaStats[]
+  /** Percentual global configurado para o aviso preventivo (padrão 75). */
+  percentualAviso?: number
 }
 
-export const AlertaBanner: React.FC<AlertaBannerProps> = ({ statsMaterias }) => {
+export const AlertaBanner: React.FC<AlertaBannerProps> = ({
+  statsMaterias,
+  percentualAviso = 75,
+}) => {
   const criticas = statsMaterias.filter((s) => s.isEstourado)
   const emAlerta = statsMaterias.filter((s) => s.isAlerta)
 
@@ -23,7 +28,7 @@ export const AlertaBanner: React.FC<AlertaBannerProps> = ({ statsMaterias }) => 
               Frequência em dia em todas as matérias!
             </p>
             <p className="text-[11px] text-emerald-300/70">
-              Nenhuma matéria atingiu 75% da cota permitida de faltas.
+              Nenhuma matéria atingiu {percentualAviso}% da cota permitida de faltas.
             </p>
           </div>
         </div>
@@ -70,7 +75,8 @@ export const AlertaBanner: React.FC<AlertaBannerProps> = ({ statsMaterias }) => 
             </div>
             <div>
               <p className="font-bold text-amber-200">
-                Alerta de Proximidade: {emAlerta.length} matéria(s) a 75%+ do limite de faltas
+                Alerta de Proximidade: {emAlerta.length} matéria(s) a {percentualAviso}
+                %+ do limite de faltas
               </p>
               <p className="text-[11px] text-amber-300/80">
                 {emAlerta

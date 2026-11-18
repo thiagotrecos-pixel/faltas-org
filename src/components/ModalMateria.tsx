@@ -57,6 +57,9 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
     materiaParaEditar?.limite_faltas ? String(materiaParaEditar.limite_faltas) : '',
   )
   const [usarLimiteAuto, setUsarLimiteAuto] = useState(true)
+  const [percentualAvisoEspecifico, setPercentualAvisoEspecifico] = useState(
+    materiaParaEditar?.percentual_aviso ? String(materiaParaEditar.percentual_aviso) : '',
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Atualiza estado se materiaParaEditar mudar
@@ -70,6 +73,9 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
       setCor(materiaParaEditar.cor || '#6366f1')
       setLimitePersonalizado(String(materiaParaEditar.limite_faltas))
       setUsarLimiteAuto(false)
+      setPercentualAvisoEspecifico(
+        materiaParaEditar.percentual_aviso ? String(materiaParaEditar.percentual_aviso) : '',
+      )
     } else {
       setNome('')
       setCodigo('')
@@ -79,6 +85,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
       setCor('#6366f1')
       setLimitePersonalizado('')
       setUsarLimiteAuto(true)
+      setPercentualAvisoEspecifico('')
     }
   }, [materiaParaEditar, isOpen])
 
@@ -128,6 +135,9 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
           limite_faltas: limiteFinal,
           horas_por_aula: hAulaNum,
           cor,
+          percentual_aviso: percentualAvisoEspecifico.trim()
+            ? Number(percentualAvisoEspecifico)
+            : null,
         })
         toast({
           title: 'Matéria atualizada!',
@@ -142,6 +152,9 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
           limite_faltas: limiteFinal,
           horas_por_aula: hAulaNum,
           cor,
+          percentual_aviso: percentualAvisoEspecifico.trim()
+            ? Number(percentualAvisoEspecifico)
+            : null,
         })
         toast({
           title: 'Matéria cadastrada!',
@@ -290,10 +303,44 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
               <p className="text-zinc-400 text-[11px] leading-relaxed">
                 Equivale a aproximadamente{' '}
                 <strong className="text-zinc-200">{maxFaltasAulas} dias de aula</strong> ({hAulaNum}
-                h/aula). O alerta dispara quando faltar menos de 25% dessa margem (a partir de 75%
-                consumido).
+                h/aula). O alerta preventivo dispara no percentual de aviso configurado (global ou
+                específico desta matéria).
               </p>
             </div>
+          </div>
+
+          {/* Limite de aviso específico (opcional) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="percentualAviso" className="text-xs text-zinc-300">
+                Limite de aviso específico (% da cota)
+              </Label>
+              <button
+                type="button"
+                onClick={() => setPercentualAvisoEspecifico('')}
+                className="text-[11px] text-indigo-400 hover:underline"
+              >
+                Usar global
+              </button>
+            </div>
+            <div className="relative">
+              <Input
+                id="percentualAviso"
+                type="number"
+                min="1"
+                max="99"
+                step="1"
+                placeholder="Vazio = usa o global (ex: 75)"
+                value={percentualAvisoEspecifico}
+                onChange={(e) => setPercentualAvisoEspecifico(e.target.value)}
+                className="bg-[#151a2e] border-zinc-700/60 focus:border-indigo-500 text-xs h-8 pr-8"
+              />
+              <span className="absolute right-3 top-1.5 text-xs text-zinc-500">%</span>
+            </div>
+            <p className="text-[11px] text-zinc-500">
+              Se preenchido, o alerta preventivo desta matéria dispara nesse percentual da cota de
+              faltas, sem afetar as demais.
+            </p>
           </div>
 
           {/* Opção de ajuste manual do limite */}

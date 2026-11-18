@@ -22,6 +22,8 @@ export interface CriarMateriaInput {
   limite_faltas?: number
   horas_por_aula?: number
   cor?: string
+  /** Limite de aviso específico da matéria (1–99). Vazio = usa o global. */
+  percentual_aviso?: number | null
 }
 
 export async function criarMateria(dados: CriarMateriaInput): Promise<Materia> {
@@ -44,6 +46,10 @@ export async function criarMateria(dados: CriarMateriaInput): Promise<Materia> {
     limite_faltas: Number(limiteCalculado),
     horas_por_aula: Number(dados.horas_por_aula || 2),
     cor: dados.cor || '#6366f1',
+    percentual_aviso:
+      dados.percentual_aviso != null && dados.percentual_aviso > 0
+        ? Math.min(99, Math.max(1, Math.round(dados.percentual_aviso)))
+        : null,
   })
   return record
 }
@@ -66,6 +72,12 @@ export async function atualizarMateria(
   if (dados.limite_faltas !== undefined) payload.limite_faltas = Number(dados.limite_faltas)
   if (dados.horas_por_aula !== undefined) payload.horas_por_aula = Number(dados.horas_por_aula)
   if (dados.cor !== undefined) payload.cor = dados.cor
+  if (dados.percentual_aviso !== undefined) {
+    payload.percentual_aviso =
+      dados.percentual_aviso != null && dados.percentual_aviso > 0
+        ? Math.min(99, Math.max(1, Math.round(dados.percentual_aviso)))
+        : null
+  }
 
   const record = await pb.collection('materias').update<Materia>(id, payload)
   return record

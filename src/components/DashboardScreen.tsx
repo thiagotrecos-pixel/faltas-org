@@ -10,6 +10,7 @@ import { Materia, Aula, MateriaStats } from '@/types'
 import { listarMaterias } from '@/services/materias'
 import { listarAulas } from '@/services/aulas'
 import { calcularStatsMateria } from '@/services/calculations'
+import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -26,6 +27,7 @@ import {
 
 export const DashboardScreen: React.FC = () => {
   const { user } = useAuth()
+  const { percentualAviso } = useConfiguracaoAviso()
   const [materias, setMaterias] = useState<Materia[]>([])
   const [aulas, setAulas] = useState<Aula[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -56,7 +58,7 @@ export const DashboardScreen: React.FC = () => {
   // Calcula estatísticas para cada matéria
   const statsPorMateria: MateriaStats[] = materias.map((mat) => {
     const aulasDessa = aulas.filter((a) => a.materia_id === mat.id)
-    return calcularStatsMateria(mat, aulasDessa)
+    return calcularStatsMateria(mat, aulasDessa, percentualAviso)
   })
 
   // Totais globais
@@ -142,7 +144,7 @@ export const DashboardScreen: React.FC = () => {
         </div>
 
         {/* Global Alert Notification Banner */}
-        <AlertaBanner statsMaterias={statsPorMateria} />
+        <AlertaBanner statsMaterias={statsPorMateria} percentualAviso={percentualAviso} />
 
         {/* Key Metrics Dashboard Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -288,8 +290,8 @@ export const DashboardScreen: React.FC = () => {
               <strong className="text-zinc-200">75% de frequência</strong> para aprovação, podendo
               faltar no máximo <strong className="text-indigo-300">25% da carga horária</strong>.
               Nosso sistema calcula o teto de horas exatas e avisa com destaque quando você consome{' '}
-              <strong className="text-amber-300">75% ou mais do seu limite</strong>, permitindo que
-              você reaja antes de reprovar.
+              <strong className="text-amber-300">{percentualAviso}% ou mais do seu limite</strong>,
+              permitindo que você reaja antes de reprovar.
             </p>
           </div>
         </div>

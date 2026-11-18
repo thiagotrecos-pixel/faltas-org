@@ -7,6 +7,7 @@ import { Materia, Aula, MateriaStats } from '@/types'
 import { listarMaterias } from '@/services/materias'
 import { listarAulas } from '@/services/aulas'
 import { calcularStatsMateria } from '@/services/calculations'
+import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react'
 
 export const AlertasPage: React.FC = () => {
+  const { percentualAviso } = useConfiguracaoAviso()
   const [materias, setMaterias] = useState<Materia[]>([])
   const [aulas, setAulas] = useState<Aula[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -48,7 +50,7 @@ export const AlertasPage: React.FC = () => {
 
   const statsPorMateria: MateriaStats[] = materias.map((mat) => {
     const aulasDessa = aulas.filter((a) => a.materia_id === mat.id)
-    return calcularStatsMateria(mat, aulasDessa)
+    return calcularStatsMateria(mat, aulasDessa, percentualAviso)
   })
 
   const criticas = statsPorMateria.filter((s) => s.isEstourado)
@@ -80,8 +82,8 @@ export const AlertasPage: React.FC = () => {
               <span>Central de Alertas de Faltas</span>
             </h1>
             <p className="text-xs sm:text-sm text-zinc-400">
-              Notificações automáticas ativadas ao atingir 75% da cota limite ou em caso de risco de
-              reprovação.
+              Notificações automáticas ativadas ao atingir {percentualAviso}% da cota limite ou em
+              caso de risco de reprovação.
             </p>
           </div>
         </div>
@@ -93,11 +95,14 @@ export const AlertasPage: React.FC = () => {
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div className="space-y-1 text-xs">
-              <h3 className="font-bold text-amber-200">Gatilho do Alerta: 75% da cota</h3>
+              <h3 className="font-bold text-amber-200">
+                Gatilho do Alerta: {percentualAviso}% da cota
+              </h3>
               <p className="text-zinc-400 text-[11px] leading-relaxed">
-                Quando você consome três quartos da sua folga de faltas (ex: 11h de um limite de
-                15h), a matéria entra imediatamente nesta central para que você não perca a
-                aprovação na reta final.
+                Quando você consome {percentualAviso}% da sua folga de faltas (ex:{' '}
+                {Math.round(15 * (percentualAviso / 100) * 10) / 10}h de um limite de 15h), a
+                matéria entra imediatamente nesta central para que você não perca a aprovação na
+                reta final.
               </p>
             </div>
           </div>
@@ -129,8 +134,8 @@ export const AlertasPage: React.FC = () => {
               Tudo sob controle! Nenhum alerta ativo
             </h3>
             <p className="text-xs text-zinc-400 max-w-md mx-auto mt-1 mb-5">
-              Todas as suas matérias estão com percentual de faltas bem abaixo do teto de 75%.
-              Continue mantendo sua presença em dia.
+              Todas as suas matérias estão com percentual de faltas bem abaixo do teto de{' '}
+              {percentualAviso}%. Continue mantendo sua presença em dia.
             </p>
             <Link to="/aulas">
               <Button className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-full text-xs font-semibold px-5 h-9">
@@ -216,7 +221,7 @@ export const AlertasPage: React.FC = () => {
               </div>
             )}
 
-            {/* 2. Matérias em Alerta (>= 75% do limite) */}
+            {/* 2. Matérias em Alerta (>= percentual de aviso configurado) */}
             {emAlerta.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">

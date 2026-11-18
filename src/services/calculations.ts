@@ -1,9 +1,11 @@
 import { Materia, Aula, MateriaStats } from '@/types'
+import { PERCENTUAL_AVISO_PADRAO } from './configuracoes'
 
 /**
  * Premissas do projeto:
  * - Limite de faltas = 25% da carga horária da matéria (ex: 60h -> 15h)
- * - Alerta dispara quando as faltas chegam a 75% do limite (ex: 15h * 0.75 = 11.25h)
+ * - Alerta preventivo dispara no percentual configurado da cota de faltas
+ *   (padrão 75%, editável globalmente e por matéria)
  */
 
 export function calcularLimiteFaltas(cargaHoraria: number): number {
@@ -12,7 +14,29 @@ export function calcularLimiteFaltas(cargaHoraria: number): number {
   return Math.round(cargaHoraria * 0.25 * 10) / 10
 }
 
-export function calcularStatsMateria(materia: Materia, aulasDaMateria: Aula[]): MateriaStats {
+/**
+ * Percentual de aviso da matéria: o valor específico da matéria quando
+ * preenchido (1–99), senão o percentual global configurado.
+ */
+export function percentualAvisoMateria(
+  materia: Materia,
+  percentualGlobal: number = PERCENTUAL_AVISO_PADRAO,
+): number {
+  const especifico = materia.percentual_aviso
+  if (especifico && especifico > 0) {
+    return Math.min(99, Math.max(1, especifico))
+  }
+  const global = percentualGlobal > 0 ? percentualGlobal : PERCENTUAL_AVISO_PADRAO
+  return Math.min(99, Math.max(1, global))
+}
+
+export function calcularStatsMateria(
+  materia: Materia,
+  aulasDaMateria: Aula[],
+  percentualAvisoGlobal: number = PERCENTUAL_AVISO_PADRAO,
+): MateriaStats {
+  const percentualAviso = percentualAvisoMateria(materia, percentualAvisoGlobal)
+
   const horasPadraoAula =
     materia.horas_por_aula && materia.horas_por_aula > 0 ? materia.horas_por_aula : 2
   const limiteFaltas =
@@ -48,8 +72,8 @@ export function calcularStatsMateria(materia: Materia, aulasDaMateria: Aula[]): 
   const aulasRestantesPossiveis = Math.max(0, Math.floor(faltasRestantesHoras / horasPadraoAula))
 
   const isEstourado = horasFaltas > limiteFaltas
-  // Alerta quando as faltas chegam a 75% do limite
-  const isAlerta = !isEstourado && percentualLimiteConsumido >= 75
+  // Alerta preventivo no percentual configurado da cota (padrão 75%)
+  const isAlerta = !isEstourado && percentualLimiteConsumido >= percentualAviso
 
   let statusAlerta: 'seguro' | 'alerta' | 'reprovado' = 'seguro'
   if (isEstourado) {
@@ -74,5 +98,6 @@ export function calcularStatsMateria(materia: Materia, aulasDaMateria: Aula[]): 
     isAlerta,
     isEstourado,
     statusAlerta,
+    percentualAviso,
   }
 }

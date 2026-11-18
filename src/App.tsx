@@ -8,6 +8,7 @@ import Index from './pages/Index'
 import { MateriasPage } from './pages/MateriasPage'
 import { AulasPage } from './pages/AulasPage'
 import { AlertasPage } from './pages/AlertasPage'
+import { ConfiguracoesPage } from './pages/ConfiguracoesPage'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/materias" element={<MateriasPage />} />
             <Route path="/aulas" element={<AulasPage />} />
             <Route path="/alertas" element={<AlertasPage />} />
+            <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

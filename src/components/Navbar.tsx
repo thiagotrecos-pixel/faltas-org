@@ -10,6 +10,7 @@ import {
   LogOut,
   User as UserIcon,
   Plus,
+  Settings2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -32,6 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenNovaMateria, totalAlertas 
       icon: AlertTriangle,
       badge: totalAlertas > 0 ? totalAlertas : undefined,
     },
+    { label: 'Config.', path: '/configuracoes', icon: Settings2 },
   ]
 
   return (

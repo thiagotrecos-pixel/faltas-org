@@ -7,6 +7,7 @@ import { Materia, Aula, MateriaStats } from '@/types'
 import { listarMaterias } from '@/services/materias'
 import { listarAulas, alternarStatusAula, excluirAula } from '@/services/aulas'
 import { calcularStatsMateria } from '@/services/calculations'
+import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -42,6 +43,7 @@ import {
 
 export const AulasPage: React.FC = () => {
   const { toast } = useToast()
+  const { percentualAviso } = useConfiguracaoAviso()
   const [searchParams, setSearchParams] = useSearchParams()
   const filtroMateriaUrl = searchParams.get('materia') || 'todas'
 
@@ -149,12 +151,13 @@ export const AulasPage: React.FC = () => {
     ? calcularStatsMateria(
         materiaSelecionadaObj,
         aulas.filter((a) => a.materia_id === materiaSelecionadaObj.id),
+        percentualAviso,
       )
     : null
 
   const statsPorMateria: MateriaStats[] = materias.map((mat) => {
     const aulasDessa = aulas.filter((a) => a.materia_id === mat.id)
-    return calcularStatsMateria(mat, aulasDessa)
+    return calcularStatsMateria(mat, aulasDessa, percentualAviso)
   })
   const totalAlertas = statsPorMateria.filter((s) => s.isAlerta || s.isEstourado).length
 

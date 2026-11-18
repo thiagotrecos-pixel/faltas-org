@@ -17,6 +17,16 @@ export interface Materia {
   limite_faltas: number
   horas_por_aula?: number
   cor?: string
+  percentual_aviso?: number | null
+  created: string
+  updated: string
+}
+
+export interface Configuracao {
+  id: string
+  user_id: string
+  chave: 'aviso_preventivo'
+  valor: number
   created: string
   updated: string
 }
@@ -46,7 +56,8 @@ export interface MateriaStats {
   percentualLimiteConsumido: number // (horas de faltas / limite de faltas) * 100
   faltasRestantesHoras: number
   aulasRestantesPossiveis: number // faltas restantes / horas_por_aula
-  isAlerta: boolean // >= 75% do limite
+  isAlerta: boolean // >= percentual de aviso configurado
   isEstourado: boolean // >= 100% do limite
+  percentualAviso: number // percentual da cota usado como gatilho do alerta
   statusAlerta: 'seguro' | 'alerta' | 'reprovado'
 }

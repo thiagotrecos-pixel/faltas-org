@@ -5,6 +5,7 @@ import { Materia, Aula, MateriaStats } from '@/types'
 import { listarMaterias, excluirMateria } from '@/services/materias'
 import { listarAulas } from '@/services/aulas'
 import { calcularStatsMateria } from '@/services/calculations'
+import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -35,6 +36,7 @@ import { Link } from 'react-router-dom'
 
 export const MateriasPage: React.FC = () => {
   const { toast } = useToast()
+  const { percentualAviso } = useConfiguracaoAviso()
   const [materias, setMaterias] = useState<Materia[]>([])
   const [aulas, setAulas] = useState<Aula[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -65,7 +67,7 @@ export const MateriasPage: React.FC = () => {
 
   const statsPorMateria: MateriaStats[] = materias.map((mat) => {
     const aulasDessa = aulas.filter((a) => a.materia_id === mat.id)
-    return calcularStatsMateria(mat, aulasDessa)
+    return calcularStatsMateria(mat, aulasDessa, percentualAviso)
   })
 
   const filtradas = statsPorMateria.filter((s) => {
@@ -217,7 +219,7 @@ export const MateriasPage: React.FC = () => {
                           </span>
                         ) : item.isAlerta ? (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                            Alerta 75%
+                            Alerta {item.percentualAviso}%
                           </span>
                         ) : (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">

@@ -313,7 +313,7 @@ export const AuthScreen: React.FC = () => {
           </span>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-900/60 border border-zinc-800">
             <AlertCircle className="w-3 h-3 text-amber-400" />
-            Alertas antecipados (75%)
+            Alertas com limite configurável
           </span>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-900/60 border border-zinc-800">
             <HelpCircle className="w-3 h-3 text-cyan-400" />
