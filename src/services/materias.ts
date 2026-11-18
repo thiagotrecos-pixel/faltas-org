@@ -1,0 +1,76 @@
+import pb from '@/lib/pocketbase/client'
+import { Materia } from '@/types'
+import { calcularLimiteFaltas } from './calculations'
+
+export async function listarMaterias(): Promise<Materia[]> {
+  const records = await pb.collection('materias').getFullList<Materia>({
+    sort: 'nome',
+  })
+  return records
+}
+
+export async function obterMateria(id: string): Promise<Materia> {
+  const record = await pb.collection('materias').getOne<Materia>(id)
+  return record
+}
+
+export interface CriarMateriaInput {
+  nome: string
+  codigo?: string
+  professor?: string
+  carga_horaria: number
+  limite_faltas?: number
+  horas_por_aula?: number
+  cor?: string
+}
+
+export async function criarMateria(dados: CriarMateriaInput): Promise<Materia> {
+  const userId = pb.authStore.model?.id
+  if (!userId) {
+    throw new Error('Usuário não autenticado')
+  }
+
+  const limiteCalculado =
+    dados.limite_faltas && dados.limite_faltas > 0
+      ? dados.limite_faltas
+      : calcularLimiteFaltas(dados.carga_horaria)
+
+  const record = await pb.collection('materias').create<Materia>({
+    user_id: userId,
+    nome: dados.nome.trim(),
+    codigo: dados.codigo?.trim() || '',
+    professor: dados.professor?.trim() || '',
+    carga_horaria: Number(dados.carga_horaria),
+    limite_faltas: Number(limiteCalculado),
+    horas_por_aula: Number(dados.horas_por_aula || 2),
+    cor: dados.cor || '#6366f1',
+  })
+  return record
+}
+
+export async function atualizarMateria(
+  id: string,
+  dados: Partial<CriarMateriaInput>,
+): Promise<Materia> {
+  const payload: Record<string, unknown> = {}
+  if (dados.nome !== undefined) payload.nome = dados.nome.trim()
+  if (dados.codigo !== undefined) payload.codigo = dados.codigo.trim()
+  if (dados.professor !== undefined) payload.professor = dados.professor.trim()
+  if (dados.carga_horaria !== undefined) {
+    payload.carga_horaria = Number(dados.carga_horaria)
+    // Se o usuário não passou limite explícito, recalcula os 25%
+    if (dados.limite_faltas === undefined) {
+      payload.limite_faltas = calcularLimiteFaltas(payload.carga_horaria as number)
+    }
+  }
+  if (dados.limite_faltas !== undefined) payload.limite_faltas = Number(dados.limite_faltas)
+  if (dados.horas_por_aula !== undefined) payload.horas_por_aula = Number(dados.horas_por_aula)
+  if (dados.cor !== undefined) payload.cor = dados.cor
+
+  const record = await pb.collection('materias').update<Materia>(id, payload)
+  return record
+}
+
+export async function excluirMateria(id: string): Promise<boolean> {
+  return await pb.collection('materias').delete(id)
+}
