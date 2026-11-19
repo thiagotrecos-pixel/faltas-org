@@ -1,12 +1,13 @@
 /**
  * Rotas de busca de imagens na web para a foto da matéria.
  *
- * GET /backend/v1/imagens/busca?q=<termo>&pagina=1
+ * GET /backend/v1/imagens/busca?q=<termo>&pagina=1  [usuários autenticados]
  *   Busca no Wikimedia Commons (API pública, sem chave) e devolve miniaturas.
  *
- * GET /backend/v1/imagens/baixar?url=<url>  [só superusuário]
+ * GET /backend/v1/imagens/baixar?url=<url>  [usuários autenticados]
  *   Proxy de download: devolve os bytes da imagem para o cliente salvar
  *   como arquivo no campo "imagem" da matéria (sem hotlink externo).
+ *   Só aceita URLs de upload.wikimedia.org.
  *
  * Nenhuma chamada sai direto do navegador: toda requisição externa passa
  * por aqui via $http.send, evitando CORS e escondendo a origem.
@@ -19,11 +20,12 @@ routerAdd(
     const RESULTADOS_POR_PAGINA = 24
     const IMAGENS_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
-    const termo = (e.request.url().query().get('q') || '').trim()
+    // e.request.url é uma propriedade (não um método) no JSVM.
+    const termo = (e.request.url.query().get('q') || '').trim()
     if (termo.length < 2) {
       throw new BadRequestError('Informe um termo de busca com pelo menos 2 caracteres.')
     }
-    let pagina = parseInt(e.request.url().query().get('pagina') || '1', 10)
+    let pagina = parseInt(e.request.url.query().get('pagina') || '1', 10)
     if (!pagina || pagina < 1 || pagina > 10) pagina = 1
 
     const params = {
@@ -59,12 +61,16 @@ routerAdd(
       })
     } catch (err) {
       console.log('imagens/busca: falha de rede ao consultar o Wikimedia Commons: ' + err)
-      throw new BadRequestError('A busca de imagens falhou. Tente novamente em instantes.')
+      throw new BadRequestError(
+        'Não foi possível falar com o serviço de imagens agora. Tente novamente em instantes.',
+      )
     }
 
     if (res.statusCode < 200 || res.statusCode >= 300) {
       console.log('imagens/busca: Commons respondeu HTTP ' + res.statusCode)
-      throw new BadRequestError('A busca de imagens falhou. Tente novamente em instantes.')
+      throw new BadRequestError(
+        'O serviço de imagens respondeu com erro. Tente novamente em instantes.',
+      )
     }
 
     const dados = res.json || {}
@@ -108,7 +114,7 @@ routerAdd(
     const IMAGENS_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
     const TAMANHO_MAX_BYTES = 5 * 1024 * 1024
 
-    const url = (e.request.url().query().get('url') || '').trim()
+    const url = (e.request.url.query().get('url') || '').trim()
     if (!url) {
       throw new BadRequestError('URL da imagem ausente.')
     }
@@ -136,7 +142,8 @@ routerAdd(
     }
 
     const cabecalhos = res.headers || {}
-    const valoresTipo = cabecalhos['Content-Type'] || cabecalhos['content-type'] || []
+    const valoresTipo =
+      cabecalhos['Content-Type'] || cabecalhos['content-type'] || cabecalhos['CONTENT-TYPE'] || []
     const contentType = String(valoresTipo[0] || '')
       .split(';')[0]
       .trim()
@@ -150,7 +157,7 @@ routerAdd(
 
     return e.blob(200, contentType || 'image/jpeg', res.body)
   },
-  $apis.requireSuperuserAuth(),
+  $apis.requireAuth(),
 )
 
 // Rota de diagnóstico (só superusuário).
