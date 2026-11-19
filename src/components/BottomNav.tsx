@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Settings2,
   History,
+  ClipboardList,
 } from 'lucide-react'
 
 interface BottomNavProps {
@@ -21,11 +22,13 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ totalAlertas = 0 }) => {
   const location = useLocation()
 
+  // Rótulos encurtados para caberem os 7 itens na barra do celular.
   const navItems = [
     { label: 'Painel', path: '/', icon: LayoutDashboard },
-    { label: 'Matérias', path: '/materias', icon: BookOpen },
+    { label: 'Matér.', path: '/materias', icon: BookOpen },
     { label: 'Aulas', path: '/aulas', icon: CheckSquare },
-    { label: 'Histórico', path: '/historico', icon: History },
+    { label: 'Notas', path: '/notas', icon: ClipboardList },
+    { label: 'Hist.', path: '/historico', icon: History },
     {
       label: 'Alertas',
       path: '/alertas',

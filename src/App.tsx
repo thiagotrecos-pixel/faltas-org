@@ -10,6 +10,7 @@ import { AulasPage } from './pages/AulasPage'
 import { AlertasPage } from './pages/AlertasPage'
 import { HistoricoPage } from './pages/HistoricoPage'
 import { ConfiguracoesPage } from './pages/ConfiguracoesPage'
+import { NotasPage } from './pages/NotasPage'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/aulas" element={<AulasPage />} />
             <Route path="/alertas" element={<AlertasPage />} />
             <Route path="/historico" element={<HistoricoPage />} />
+            <Route path="/notas" element={<NotasPage />} />
             <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
