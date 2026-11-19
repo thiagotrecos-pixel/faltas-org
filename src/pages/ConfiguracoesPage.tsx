@@ -19,6 +19,7 @@ import {
   GraduationCap,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { CardInstalarApp } from '@/components/CardInstalarApp'
 
 export const ConfiguracoesPage: React.FC = () => {
   const { toast } = useToast()
@@ -363,6 +364,9 @@ export const ConfiguracoesPage: React.FC = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Instalar o aplicativo (PWA) */}
+        <CardInstalarApp />
 
         {/* Dica sobre limite por matéria */}
         <div className="p-4 rounded-2xl bg-[#0f1424] border tech-border flex items-start gap-3">
