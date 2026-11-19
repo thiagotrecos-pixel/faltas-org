@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Link } from 'react-router-dom'
+import { AvatarMateria } from '@/components/AvatarMateria'
 
 export const MateriasPage: React.FC = () => {
   const { toast } = useToast()
@@ -194,21 +195,27 @@ export const MateriasPage: React.FC = () => {
                   <CardContent className="p-5 space-y-4 flex-1 flex flex-col justify-between">
                     <div className="space-y-2">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-2.5 h-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: cor }}
-                            />
-                            <h3 className="font-bold text-sm text-white">{materia.nome}</h3>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
-                            {materia.codigo && (
-                              <span className="font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 text-[11px]">
-                                {materia.codigo}
-                              </span>
-                            )}
-                            {materia.professor && <span>{materia.professor}</span>}
+                        {/* Imagem ao lado do nome (mesma linha) */}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <AvatarMateria
+                            materia={materia}
+                            sizeClass="w-11 h-11"
+                            textoClass="text-base"
+                          />
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-sm text-white truncate">
+                              {materia.nome}
+                            </h3>
+                            <div className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
+                              {materia.codigo && (
+                                <span className="font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 text-[11px]">
+                                  {materia.codigo}
+                                </span>
+                              )}
+                              {materia.professor && (
+                                <span className="truncate max-w-[140px]">{materia.professor}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
