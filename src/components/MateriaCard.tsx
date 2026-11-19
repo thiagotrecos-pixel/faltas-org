@@ -5,6 +5,7 @@ import { imagemMateriaUrl } from '@/services/materias'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PilulaPontos } from '@/components/PilulaPontos'
+import { LinhaNotaNecessaria } from '@/components/LinhaNotaNecessaria'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -144,9 +145,10 @@ export const MateriaCard: React.FC<MateriaCardProps> = ({
           </div>
         </div>
 
-        {/* Pílula de aprovação por pontos */}
-        <div className="flex items-center">
+        {/* Pílula de aprovação por pontos + nota necessária nas pendentes */}
+        <div className="flex items-center gap-2 flex-wrap">
           <PilulaPontos materia={materia} avaliacoes={avaliacoes} config={configPontos} />
+          <LinhaNotaNecessaria materia={materia} avaliacoes={avaliacoes} config={configPontos} />
         </div>
 
         {/* Big Percentage Progress Bar & Indicators */}

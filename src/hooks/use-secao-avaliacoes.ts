@@ -4,6 +4,7 @@ import {
   atualizarAvaliacao,
   excluirAvaliacao,
   AvaliacaoInput,
+  isPendente,
 } from '@/services/avaliacoes'
 import { useState, useCallback } from 'react'
 import { toast } from '@/hooks/use-toast'
@@ -41,7 +42,7 @@ export function useSecaoAvaliacoes(
       id: av.id,
       nome: av.nome,
       valor_maximo: String(av.valor_maximo ?? ''),
-      nota_obtida: av.nota_obtida == null ? '' : String(av.nota_obtida),
+      nota_obtida: isPendente(av) ? '' : String(av.nota_obtida ?? ''),
     })
   }, [])
 
@@ -56,6 +57,7 @@ export function useSecaoAvaliacoes(
         nome: form.nome,
         valor_maximo: Number(form.valor_maximo),
         nota_obtida: form.nota_obtida === '' ? null : Number(form.nota_obtida),
+        nota_lancada: form.nota_obtida !== '',
       }
       if (form.id) {
         await atualizarAvaliacao(form.id, dados)

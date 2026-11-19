@@ -21,7 +21,14 @@ export interface AvaliacaoInput {
   nome: string
   valor_maximo: number
   nota_obtida: number | null
+  /** true quando a nota já foi lançada (campos number do PB nunca são null). */
+  nota_lancada: boolean
   data?: string
+}
+
+/** Uma avaliação é pendente quando a nota ainda NÃO foi lançada. */
+export function isPendente(av: Avaliacao): boolean {
+  return !av.nota_lancada
 }
 
 function userId(): string {
@@ -50,6 +57,7 @@ export async function criarAvaliacao(dados: AvaliacaoInput): Promise<Avaliacao> 
     nome: dados.nome.trim(),
     valor_maximo: Number(dados.valor_maximo),
     nota_obtida: dados.nota_obtida == null ? null : Number(dados.nota_obtida),
+    nota_lancada: dados.nota_lancada,
     data: dados.data || '',
   })
 }
@@ -64,6 +72,7 @@ export async function atualizarAvaliacao(
   if (dados.nota_obtida !== undefined) {
     payload.nota_obtida = dados.nota_obtida == null ? null : Number(dados.nota_obtida)
   }
+  if (dados.nota_lancada !== undefined) payload.nota_lancada = dados.nota_lancada
   if (dados.data !== undefined) payload.data = dados.data || ''
   return await pb.collection('avaliacoes').update<Avaliacao>(id, payload)
 }
@@ -152,6 +161,8 @@ export interface SituacaoPontos {
   pontosAcumulados: number
   pontosLancados: number // pontos já distribuídos em avaliações com nota
   pontosPendentes: number // pontos de avaliações sem nota lançada
+  /** Somatório dos valores máximos das avaliações pendentes (sem nota). */
+  pendentesMaximos: number
   pontosRestantesSemestre: number // total − soma de todos os valores máximos
   media: number
   totalSemestre: number
@@ -186,13 +197,15 @@ export function calcularSituacaoPontos(
 
   let pontosAcumulados = 0
   let pontosPendentes = 0
+  let pendentesMaximos = 0
   let somaValoresMaximos = 0
 
   for (const av of avaliacoes) {
     const max = Number(av.valor_maximo) || 0
     somaValoresMaximos += max
-    if (av.nota_obtida == null || Number.isNaN(Number(av.nota_obtida))) {
+    if (isPendente(av)) {
       pontosPendentes += max
+      pendentesMaximos += max
     } else {
       pontosAcumulados += Number(av.nota_obtida)
     }
@@ -217,6 +230,7 @@ export function calcularSituacaoPontos(
     pontosAcumulados,
     pontosLancados,
     pontosPendentes,
+    pendentesMaximos,
     pontosRestantesSemestre,
     media,
     totalSemestre,
@@ -228,6 +242,67 @@ export function calcularSituacaoPontos(
 
 function arredondar(n: number): number {
   return Math.round(n * 10) / 10
+}
+
+/** Avaliação pendente (valor máximo preenchido, nota ainda não lançada). */
+export interface NotaNecessaria {
+  /** Quantos pontos ainda faltam para atingir a média de aprovação. */
+  pontosNecessarios: number
+  /** Quantas avaliações pendentes existem (com valor máximo preenchido). */
+  quantidadePendentes: number
+  /** Pontos a tirar em cada avaliação pendente, distribuídos igualmente. */
+  pontosPorAvaliacao: number
+  /** true quando somatório dos máximos das pendentes < pontos necessários. */
+  impossivel: boolean
+  /** Sobras de pontos para o resto do semestre (avaliações ainda não criadas). */
+  pontosRestantesSemestre: number
+}
+
+/**
+ * Calcula a nota necessária nas avaliações pendentes (sem nota lançada) de
+ * uma matéria para atingir a média de aprovação. Distribui os pontos
+ * necessários igualmente entre as pendentes, quando possível.
+ */
+export function calcularNotaNecessaria(
+  materia: Materia,
+  avaliacoes: Avaliacao[],
+  config: { pontosAprovacao: number; totalSemestre: number },
+): NotaNecessaria {
+  const s = calcularSituacaoPontos(materia, avaliacoes, config)
+
+  const pendentes = avaliacoes.filter((av) => (Number(av.valor_maximo) || 0) > 0 && isPendente(av))
+  const quantidadePendentes = pendentes.length
+
+  if (s.situacao === 'sem_lancamentos' && quantidadePendentes === 0) {
+    return {
+      pontosNecessarios: 0,
+      quantidadePendentes: 0,
+      pontosPorAvaliacao: 0,
+      impossivel: false,
+      pontosRestantesSemestre: s.pontosRestantesSemestre,
+    }
+  }
+
+  const pontosNecessarios = Math.max(0, arredondar(s.media - s.pontosAcumulados))
+  const impossivel = s.situacao !== 'aprovado_por_pontos' && s.pendentesMaximos < pontosNecessarios
+  const pontosPorAvaliacao =
+    quantidadePendentes > 0 && pontosNecessarios > 0
+      ? arredondar(pontosNecessarios / quantidadePendentes)
+      : 0
+
+  return {
+    pontosNecessarios,
+    quantidadePendentes,
+    pontosPorAvaliacao,
+    impossivel,
+    pontosRestantesSemestre: s.pontosRestantesSemestre,
+  }
+}
+
+/** Formata pontos de forma compacta: inteiro quando possível, senão 1 decimal. */
+export function formatarPontos(n: number): string {
+  const limpo = arredondar(n)
+  return Number.isInteger(limpo) ? String(limpo) : limpo.toFixed(1)
 }
 
 /** Rótulo amigável da situação, no tema do app. */

@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Materia, MateriaStats, Avaliacao } from '@/types'
 import { AvatarMateria } from '@/components/AvatarMateria'
 import { PilulaPontos } from '@/components/PilulaPontos'
+import { LinhaNotaNecessaria } from '@/components/LinhaNotaNecessaria'
 
 interface MateriaCardGradeProps {
   item: MateriaStats
@@ -133,9 +134,10 @@ export const MateriaCardGrade: React.FC<MateriaCardGradeProps> = ({
           </div>
         </div>
 
-        {/* Pílula de aprovação por pontos */}
-        <div className="flex items-center">
+        {/* Pílula de aprovação por pontos + nota necessária nas pendentes */}
+        <div className="flex items-center gap-2 flex-wrap">
           <PilulaPontos materia={materia} avaliacoes={avaliacoes} config={configPontos} />
+          <LinhaNotaNecessaria materia={materia} avaliacoes={avaliacoes} config={configPontos} />
         </div>
 
         {/* Botões de Ação */}

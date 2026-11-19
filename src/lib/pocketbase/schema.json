@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T17:48:34.476Z",
+  "generatedAt": "2026-11-19T18:09:10.770Z",
   "collections": [
     {
       "name": "users",
@@ -397,6 +397,12 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "nota_lancada",
+          "type": "bool",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": ["CREATE INDEX idx_avaliacoes_materia ON avaliacoes (materia_id)"]

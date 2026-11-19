@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Plus, Trash2, Pencil, Loader2, X, Award } from 'lucide-react'
+import { Plus, Trash2, Pencil, Loader2, X, Award, Target, AlertOctagon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -7,7 +7,11 @@ import { Materia, Avaliacao } from '@/types'
 import {
   listarAvaliacoesDaMateria,
   SituacaoPontos,
+  NotaNecessaria,
   calcularSituacaoPontos,
+  calcularNotaNecessaria,
+  formatarPontos,
+  isPendente,
 } from '@/services/avaliacoes'
 import { useSecaoAvaliacoes } from '@/hooks/use-secao-avaliacoes'
 import { cn } from '@/lib/utils'
@@ -57,6 +61,12 @@ export function SecaoAvaliacoes({ materia, config, onSuccess }: SecaoAvaliacoesP
   const situacao: SituacaoPontos | null = materia
     ? calcularSituacaoPontos(materia, avaliacoes, config)
     : null
+  const nota: NotaNecessaria | null = materia
+    ? calcularNotaNecessaria(materia, avaliacoes, config)
+    : null
+  // Badge por avaliação pendente (0 quando impossível — não faz sentido sugerir meta)
+  const notaNecessariaPorAvaliacao =
+    nota && !nota.impossivel && nota.pontosNecessarios > 0 ? nota.pontosPorAvaliacao : 0
 
   return (
     <div className="space-y-3">
@@ -92,6 +102,37 @@ export function SecaoAvaliacoes({ materia, config, onSuccess }: SecaoAvaliacoesP
         </div>
       )}
 
+      {/* Linha "nota necessária" — visível mesmo sem nenhum lançamento */}
+      {materia && nota && nota.quantidadePendentes > 0 && nota.pontosNecessarios > 0 && (
+        <div
+          className={cn(
+            'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono w-fit',
+            nota.impossivel
+              ? 'bg-rose-500/15 border border-rose-400/40 text-rose-300'
+              : 'bg-cyan-500/10 border border-cyan-400/30 text-cyan-300',
+          )}
+        >
+          {nota.impossivel ? (
+            <>
+              <AlertOctagon className="w-3 h-3 shrink-0" />
+              <span>
+                Sem chance · faltam {formatarPontos(nota.pontosNecessarios)} pts e as{' '}
+                {nota.quantidadePendentes} pendente(s) valem só{' '}
+                {formatarPontos(situacao?.pendentesMaximos ?? 0)} pts
+              </span>
+            </>
+          ) : (
+            <>
+              <Target className="w-3 h-3 shrink-0" />
+              <span>
+                faltam {formatarPontos(nota.pontosNecessarios)} pts · precisa de{' '}
+                {formatarPontos(nota.pontosPorAvaliacao)} em {nota.quantidadePendentes}
+              </span>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Lista de avaliações */}
       {isCarregando ? (
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-500 py-2">
@@ -108,12 +149,25 @@ export function SecaoAvaliacoes({ materia, config, onSuccess }: SecaoAvaliacoesP
           {avaliacoes.map((av) => (
             <div
               key={av.id}
-              className="flex items-center gap-2 rounded-full bg-[#101426] border border-zinc-800/80 pl-3 pr-1.5 py-1.5"
+              className={cn(
+                'flex items-center gap-2 rounded-full pl-3 pr-1.5 py-1.5 border',
+                isPendente(av) && notaNecessariaPorAvaliacao > 0
+                  ? 'bg-cyan-500/5 border-cyan-400/25'
+                  : 'bg-[#101426] border-zinc-800/80',
+              )}
             >
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-zinc-200 truncate">{av.nome}</p>
+                <p className="text-xs font-medium text-zinc-200 truncate">
+                  {av.nome}
+                  {isPendente(av) && notaNecessariaPorAvaliacao > 0 && (
+                    <span className="ml-2 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-mono bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 align-middle">
+                      <Target className="w-2.5 h-2.5" />
+                      precisa de {formatarPontos(notaNecessariaPorAvaliacao)}
+                    </span>
+                  )}
+                </p>
                 <p className="text-[10px] text-zinc-500 font-mono">
-                  {av.nota_obtida == null
+                  {isPendente(av)
                     ? `máx. ${av.valor_maximo} pts · pendente`
                     : `${av.nota_obtida}/${av.valor_maximo} pts`}
                 </p>

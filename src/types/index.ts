@@ -65,6 +65,8 @@ export interface Avaliacao {
   valor_maximo: number
   /** Pontos obtidos (null = nota ainda não lançada). */
   nota_obtida?: number | null
+  /** true quando a nota já foi lançada (números do PB nunca são null). */
+  nota_lancada?: boolean
   /** Data livre (texto) da avaliação. */
   data?: string
   created: string
