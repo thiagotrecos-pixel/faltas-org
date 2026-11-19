@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Navbar } from '@/components/Navbar'
 import { MateriaCard } from '@/components/MateriaCard'
 import { AlertaBanner } from '@/components/AlertaBanner'
+import { GraficoFaltasMateria } from '@/components/GraficoFaltasMateria'
 import { ModalMateria } from '@/components/ModalMateria'
 import { ModalAula } from '@/components/ModalAula'
 import { Materia, Aula, MateriaStats } from '@/types'
@@ -258,6 +259,9 @@ export const DashboardScreen: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Gráfico de faltas por matéria (respeita o filtro de período) */}
+        <GraficoFaltasMateria statsMaterias={statsFiltradas} />
 
         {/* Section: Suas Matérias */}
         <div className="space-y-4">
