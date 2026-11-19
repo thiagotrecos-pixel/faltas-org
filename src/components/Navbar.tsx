@@ -11,6 +11,7 @@ import {
   User as UserIcon,
   Plus,
   Settings2,
+  History,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BottomNav } from '@/components/BottomNav'
@@ -24,6 +25,7 @@ const navItems = [
   { label: 'Painel', path: '/', icon: LayoutDashboard },
   { label: 'Matérias', path: '/materias', icon: BookOpen },
   { label: 'Aulas', path: '/aulas', icon: CheckSquare },
+  { label: 'Histórico', path: '/historico', icon: History },
   {
     label: 'Alertas',
     path: '/alertas',

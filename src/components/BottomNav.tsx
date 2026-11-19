@@ -1,6 +1,13 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, BookOpen, CheckSquare, AlertTriangle, Settings2 } from 'lucide-react'
+import {
+  LayoutDashboard,
+  BookOpen,
+  CheckSquare,
+  AlertTriangle,
+  Settings2,
+  History,
+} from 'lucide-react'
 
 interface BottomNavProps {
   totalAlertas?: number
@@ -18,6 +25,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ totalAlertas = 0 }) => {
     { label: 'Painel', path: '/', icon: LayoutDashboard },
     { label: 'Matérias', path: '/materias', icon: BookOpen },
     { label: 'Aulas', path: '/aulas', icon: CheckSquare },
+    { label: 'Histórico', path: '/historico', icon: History },
     {
       label: 'Alertas',
       path: '/alertas',
@@ -44,7 +52,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ totalAlertas = 0 }) => {
               key={item.path}
               to={item.path}
               aria-current={isActive ? 'page' : undefined}
-              className={`relative flex flex-col items-center gap-0.5 px-2 pt-2.5 pb-1.5 rounded-xl min-w-0 flex-1 text-[10px] font-medium transition-colors ${
+              className={`relative flex flex-col items-center gap-0.5 px-1 pt-2.5 pb-1.5 rounded-xl min-w-0 flex-1 text-[10px] font-medium transition-colors ${
                 isActive
                   ? 'text-indigo-300'
                   : 'text-zinc-500 hover:text-zinc-300 active:text-zinc-200'
@@ -67,7 +75,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ totalAlertas = 0 }) => {
                   </span>
                 )}
               </span>
-              <span className="relative">{item.label}</span>
+              <span className="relative truncate max-w-full">{item.label}</span>
             </Link>
           )
         })}
