@@ -19,6 +19,7 @@ import { PERCENTUAL_REPROVACAO_PADRAO } from '@/services/calculations'
 import { useToast } from '@/hooks/use-toast'
 import { usePeriodos } from '@/hooks/use-periodos'
 import { SelecionadorImagemWeb } from '@/components/SelecionadorImagemWeb'
+import { SelecionadorCorEspectro } from '@/components/SelecionadorCorEspectro'
 import { BookOpen, Sparkles, Clock, AlertCircle, ImagePlus, Globe, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -28,17 +29,6 @@ interface ModalMateriaProps {
   onSuccess: () => void
   materiaParaEditar?: Materia | null
 }
-
-const PALETA_CORES = [
-  '#6366f1', // Indigo Tech
-  '#ec4899', // Pink Neon
-  '#06b6d4', // Cyan
-  '#10b981', // Emerald
-  '#8b5cf6', // Violet
-  '#f59e0b', // Amber
-  '#ef4444', // Red
-  '#3b82f6', // Blue
-]
 
 /** Tipos e limite de tamanho da imagem (5 MB), alinhados com a migration 0004. */
 const TIPOS_IMAGEM = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -698,25 +688,10 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
             )}
           </div>
 
-          {/* Cor de Identificação */}
+          {/* Cor de Identificação — seletor de espectro livre */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-zinc-300">Cor de destaque</Label>
-            <div className="flex items-center gap-2 flex-wrap">
-              {PALETA_CORES.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setCor(c)}
-                  className={`w-7 h-7 rounded-full transition-transform duration-150 flex items-center justify-center ${
-                    cor === c
-                      ? 'scale-125 ring-2 ring-white/80 ring-offset-2 ring-offset-[#0f1424]'
-                      : 'hover:scale-110 opacity-70 hover:opacity-100'
-                  }`}
-                  style={{ backgroundColor: c }}
-                  aria-label={`Selecionar cor ${c}`}
-                />
-              ))}
-            </div>
+            <Label className="text-xs text-zinc-300">Cor de destaque (espectro livre)</Label>
+            <SelecionadorCorEspectro cor={cor} onChange={setCor} />
           </div>
 
           <DialogFooter className="pt-2 gap-2">
