@@ -1,3 +1,4 @@
+// Cria a coleção de períodos letivos, o vínculo materia→periodo e distribui os dados demo.
 migrate(
   (app) => {
     const users = app.findCollectionByNameOrId('_pb_users_auth_')
