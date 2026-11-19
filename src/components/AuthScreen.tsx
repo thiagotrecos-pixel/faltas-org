@@ -87,7 +87,7 @@ export const AuthScreen: React.FC = () => {
         await signup(email, password, name)
         toast({
           title: 'Conta criada com sucesso!',
-          description: 'Seja bem-vindo ao Controle de Faltas.',
+          description: 'Seja bem-vindo ao Falta.org.',
         })
       }
     } catch (err: unknown) {
@@ -140,7 +140,7 @@ export const AuthScreen: React.FC = () => {
             </div>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Controle de Faltas
+            Falta<span className="text-indigo-400">.org</span>
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400 max-w-sm mx-auto">
             Monitore suas presenças, não perca o limite de 25% e evite reprovações por falta no

@@ -11,7 +11,7 @@ const Index: React.FC = () => {
     return (
       <div className="min-h-screen bg-[#070913] flex flex-col items-center justify-center text-zinc-400 gap-3">
         <RefreshCw className="w-7 h-7 text-indigo-400 animate-spin" />
-        <p className="text-xs">Carregando Controle de Faltas...</p>
+        <p className="text-xs">Carregando Falta.org...</p>
       </div>
     )
   }

@@ -55,7 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenNovaMateria, totalAlertas 
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-bold text-base tracking-tight text-white group-hover:text-indigo-300 transition-colors">
-                  Controle de Faltas
+                  Falta<span className="text-indigo-400">.org</span>
                 </span>
                 <span className="text-[10px] uppercase font-mono tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                   Univ
