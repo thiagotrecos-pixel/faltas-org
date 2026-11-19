@@ -710,7 +710,11 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
                   banco imediatamente, sem precisar salvar a matéria.
                 </p>
               </div>
-              <SecaoAvaliacoes materia={materiaParaEditar} config={configPontos} />
+              <SecaoAvaliacoes
+                materia={materiaParaEditar}
+                config={configPontos}
+                onSuccess={onSuccess}
+              />
             </div>
           )}
 

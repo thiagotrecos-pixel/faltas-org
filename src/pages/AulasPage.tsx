@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Navbar } from '@/components/Navbar'
 import { ModalAula } from '@/components/ModalAula'
 import { ModalMateria } from '@/components/ModalMateria'
+import { ModalLancarNota } from '@/components/ModalLancarNota'
 import { Materia, Aula, MateriaStats } from '@/types'
 import { listarMaterias, imagemMateriaUrl } from '@/services/materias'
 import { listarAulas, alternarStatusAula, excluirAula } from '@/services/aulas'
@@ -21,6 +22,7 @@ import {
   Filter,
   Clock,
   Sparkles,
+  GraduationCap,
 } from 'lucide-react'
 import {
   Select,
@@ -60,6 +62,8 @@ export const AulasPage: React.FC = () => {
   const [modalMateriaAberto, setModalMateriaAberto] = useState(false)
   const [aulaParaExcluir, setAulaParaExcluir] = useState<Aula | null>(null)
   const [isExcluindo, setIsExcluindo] = useState(false)
+  const [modalNotaAberto, setModalNotaAberto] = useState(false)
+  const [materiaPreSelecionadaNota, setMateriaPreSelecionadaNota] = useState<string | undefined>()
 
   const carregarDados = useCallback(async () => {
     setIsLoading(true)
@@ -190,6 +194,19 @@ export const AulasPage: React.FC = () => {
           >
             <Plus className="w-4 h-4" />
             <span>Lançar Nova Aula</span>
+          </Button>
+
+          <Button
+            onClick={() => {
+              if (filtroMateria !== 'todas') setMateriaPreSelecionadaNota(filtroMateria)
+              setModalNotaAberto(true)
+            }}
+            disabled={materias.length === 0}
+            variant="outline"
+            className="rounded-full border-cyan-500/40 bg-transparent hover:bg-cyan-500/10 text-cyan-300 text-xs font-semibold h-9 px-4 shadow-md shadow-cyan-600/20 gap-1.5 self-start sm:self-auto"
+          >
+            <GraduationCap className="w-4 h-4" />
+            <span>Lançar Nota</span>
           </Button>
         </div>
 
@@ -450,6 +467,15 @@ export const AulasPage: React.FC = () => {
         materias={materias}
         aulaParaEditar={aulaParaEditar}
         materiaPreSelecionadaId={filtroMateria !== 'todas' ? filtroMateria : undefined}
+      />
+
+      {/* Modal Lançar Nota */}
+      <ModalLancarNota
+        isOpen={modalNotaAberto}
+        onClose={() => setModalNotaAberto(false)}
+        onSuccess={carregarDados}
+        materias={materias}
+        materiaPreSelecionadaId={materiaPreSelecionadaNota}
       />
 
       {/* Modal Nova Matéria */}

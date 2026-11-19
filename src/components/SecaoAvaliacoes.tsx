@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Plus, Trash2, Pencil, Loader2, X, Award } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,19 +15,23 @@ import { cn } from '@/lib/utils'
 interface SecaoAvaliacoesProps {
   materia: Materia | null
   config: { pontosAprovacao: number; totalSemestre: number }
+  /** Chamado após lançar/editar/excluir uma avaliação (para atualizar pílulas e gráficos). */
+  onSuccess?: () => void
 }
 
 /**
  * Seção "Avaliações" do modal de matéria: lista as avaliações lançadas,
  * permite adicionar/editar/remover e mostra o resumo de aprovação por pontos.
  */
-export function SecaoAvaliacoes({ materia, config }: SecaoAvaliacoesProps) {
+export function SecaoAvaliacoes({ materia, config, onSuccess }: SecaoAvaliacoesProps) {
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([])
   const [isCarregando, setIsCarregando] = useState(false)
   const materiaId = materia?.id ?? null
 
+  const notificarAlteracao = useCallback(() => onSuccess?.(), [onSuccess])
+
   const { form, setForm, iniciarEdicao, cancelar, salvar, excluir, isSalvando, isExcluindo } =
-    useSecaoAvaliacoes(materiaId, recarregar)
+    useSecaoAvaliacoes(materiaId, recarregar, notificarAlteracao)
 
   async function recarregar() {
     if (!materiaId) {

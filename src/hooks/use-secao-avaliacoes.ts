@@ -27,7 +27,11 @@ const FORM_VAZIO: FormAvaliacao = {
  * Estado da seção "Avaliações" do modal de matéria: lança, edita e exclui
  * pontuações (P1, P2, trabalhos...) da matéria.
  */
-export function useSecaoAvaliacoes(materiaId: string | null, onAlterado: () => void) {
+export function useSecaoAvaliacoes(
+  materiaId: string | null,
+  onAlterado: () => void,
+  onAlteradoExtra?: () => void,
+) {
   const [form, setForm] = useState<FormAvaliacao>(FORM_VAZIO)
   const [isSalvando, setIsSalvando] = useState(false)
   const [isExcluindo, setIsExcluindo] = useState(false)
@@ -60,6 +64,7 @@ export function useSecaoAvaliacoes(materiaId: string | null, onAlterado: () => v
       }
       setForm(FORM_VAZIO)
       onAlterado()
+      onAlteradoExtra?.()
       toast({ title: 'Avaliação salva', description: `"${form.nome.trim()}" registrada.` })
     } catch (err: unknown) {
       console.error('Erro ao salvar avaliação:', err)
@@ -79,6 +84,7 @@ export function useSecaoAvaliacoes(materiaId: string | null, onAlterado: () => v
       await excluirAvaliacao(id)
       if (form.id === id) setForm(FORM_VAZIO)
       onAlterado()
+      onAlteradoExtra?.()
       toast({ title: 'Avaliação excluída' })
     } catch (err: unknown) {
       console.error('Erro ao excluir avaliação:', err)

@@ -7,6 +7,8 @@ import { AlertaBanner } from '@/components/AlertaBanner'
 import { GraficoFaltasMateria } from '@/components/GraficoFaltasMateria'
 import { ModalMateria } from '@/components/ModalMateria'
 import { ModalAula } from '@/components/ModalAula'
+import { ModalLancarNota } from '@/components/ModalLancarNota'
+import { GraficoPontosMateria } from '@/components/GraficoPontosMateria'
 import { Materia, Aula, MateriaStats } from '@/types'
 import { listarMaterias } from '@/services/materias'
 import { listarAulas } from '@/services/aulas'
@@ -48,6 +50,8 @@ export const DashboardScreen: React.FC = () => {
   const [materiaParaEditar, setMateriaParaEditar] = useState<Materia | null>(null)
   const [modalAulaAberto, setModalAulaAberto] = useState(false)
   const [materiaPreSelecionadaAula, setMateriaPreSelecionadaAula] = useState<string | undefined>()
+  const [modalNotaAberto, setModalNotaAberto] = useState(false)
+  const [materiaPreSelecionadaNota, setMateriaPreSelecionadaNota] = useState<string | undefined>()
 
   const carregarDados = useCallback(async () => {
     setIsLoading(true)
@@ -108,6 +112,13 @@ export const DashboardScreen: React.FC = () => {
     setModalAulaAberto(true)
   }
 
+  const handleLancarNota = (materiaId?: string) => {
+    setMateriaPreSelecionadaNota(
+      materiaId || statsFiltradas[0]?.materia.id || materias[0]?.id || undefined,
+    )
+    setModalNotaAberto(true)
+  }
+
   const nomePeriodoAtivo =
     filtroAtivo === FILTRO_TODOS
       ? null
@@ -161,15 +172,28 @@ export const DashboardScreen: React.FC = () => {
               <span>Atualizar</span>
             </Button>
 
-            <Button
-              size="sm"
-              onClick={() => handleLancarAula()}
-              disabled={materias.length === 0}
-              className="rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold h-9 px-4 shadow-md shadow-indigo-600/30 gap-1.5"
-            >
-              <CheckSquare className="w-3.5 h-3.5" />
-              <span>Marcar Aula</span>
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                size="sm"
+                onClick={() => handleLancarAula()}
+                disabled={materias.length === 0}
+                className="rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold h-9 px-4 shadow-md shadow-indigo-600/30 gap-1.5"
+              >
+                <CheckSquare className="w-3.5 h-3.5" />
+                <span>Marcar Aula</span>
+              </Button>
+
+              <Button
+                size="sm"
+                onClick={() => handleLancarNota()}
+                disabled={materias.length === 0}
+                variant="outline"
+                className="rounded-full border-cyan-500/40 hover:bg-cyan-500/10 text-cyan-300 text-xs font-semibold h-9 px-4 shadow-md shadow-cyan-600/20 gap-1.5"
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>Lançar Nota</span>
+              </Button>
+            </div>
 
             <Button
               size="sm"
@@ -267,6 +291,13 @@ export const DashboardScreen: React.FC = () => {
         {/* Gráfico de faltas por matéria (respeita o filtro de período) */}
         <GraficoFaltasMateria statsMaterias={statsFiltradas} />
 
+        {/* Gráfico de pontuação por matéria (respeita o filtro de período) */}
+        <GraficoPontosMateria
+          statsMaterias={statsFiltradas}
+          avaliacoesPorMateria={avaliacoesPorMateria}
+          config={configPontos}
+        />
+
         {/* Section: Suas Matérias */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -332,6 +363,7 @@ export const DashboardScreen: React.FC = () => {
                   key={stats.materia.id}
                   stats={stats}
                   onLancarAula={handleLancarAula}
+                  onLancarNota={handleLancarNota}
                   onEditarMateria={handleEditarMateria}
                   avaliacoes={avaliacoesPorMateria[stats.materia.id] || []}
                   configPontos={configPontos}
@@ -379,6 +411,14 @@ export const DashboardScreen: React.FC = () => {
         onSuccess={carregarDados}
         materias={materias}
         materiaPreSelecionadaId={materiaPreSelecionadaAula}
+      />
+
+      <ModalLancarNota
+        isOpen={modalNotaAberto}
+        onClose={() => setModalNotaAberto(false)}
+        onSuccess={recarregarTudo}
+        materias={materias}
+        materiaPreSelecionadaId={materiaPreSelecionadaNota}
       />
     </div>
   )

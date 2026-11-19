@@ -13,11 +13,13 @@ import {
   Plus,
   ArrowRight,
   BookOpen,
+  GraduationCap,
 } from 'lucide-react'
 
 interface MateriaCardProps {
   stats: MateriaStats
   onLancarAula: (materiaId: string) => void
+  onLancarNota?: (materiaId: string) => void
   onEditarMateria: (materia: Materia) => void
   avaliacoes: Avaliacao[]
   configPontos: { pontosAprovacao: number; totalSemestre: number }
@@ -26,6 +28,7 @@ interface MateriaCardProps {
 export const MateriaCard: React.FC<MateriaCardProps> = ({
   stats,
   onLancarAula,
+  onLancarNota,
   onEditarMateria,
   avaliacoes,
   configPontos,
@@ -233,34 +236,50 @@ export const MateriaCard: React.FC<MateriaCardProps> = ({
 
         {/* Actions buttons */}
         <div className="flex items-center gap-2 pt-1">
-          <Button
-            size="sm"
-            onClick={() => onLancarAula(materia.id)}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold h-8 shadow-md shadow-indigo-600/20 gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Lançar Aula</span>
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onEditarMateria(materia)}
-            className="rounded-xl border-zinc-700 hover:bg-zinc-800 text-zinc-300 text-xs h-8 px-3"
-          >
-            Editar
-          </Button>
-
-          <Link to={`/aulas?materia=${materia.id}`}>
+          <div className="flex-1 flex flex-col gap-2 min-w-0">
             <Button
               size="sm"
-              variant="ghost"
-              className="rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 text-xs h-8 px-2"
-              title="Ver histórico de aulas"
+              onClick={() => onLancarAula(materia.id)}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold h-8 shadow-md shadow-indigo-600/20 gap-1.5"
             >
-              <ArrowRight className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
+              <span>Lançar Aula</span>
             </Button>
-          </Link>
+
+            {onLancarNota && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onLancarNota(materia.id)}
+                className="w-full border-cyan-500/40 hover:bg-cyan-500/10 text-cyan-300 rounded-xl text-xs font-semibold h-8 gap-1.5"
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>Lançar Nota</span>
+              </Button>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onEditarMateria(materia)}
+              className="rounded-xl border-zinc-700 hover:bg-zinc-800 text-zinc-300 text-xs h-8 px-3"
+            >
+              Editar
+            </Button>
+
+            <Link to={`/aulas?materia=${materia.id}`}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 text-xs h-8 px-2"
+                title="Ver histórico de aulas"
+              >
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>

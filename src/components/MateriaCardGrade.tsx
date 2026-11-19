@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Edit2, Trash2 } from 'lucide-react'
+import { Edit2, Trash2, GraduationCap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Materia, MateriaStats, Avaliacao } from '@/types'
@@ -11,6 +11,7 @@ interface MateriaCardGradeProps {
   item: MateriaStats
   onEditar: (materia: Materia) => void
   onExcluir: (materia: Materia) => void
+  onLancarNota?: (materiaId: string) => void
   avaliacoes: Avaliacao[]
   configPontos: { pontosAprovacao: number; totalSemestre: number }
 }
@@ -20,6 +21,7 @@ export const MateriaCardGrade: React.FC<MateriaCardGradeProps> = ({
   item,
   onEditar,
   onExcluir,
+  onLancarNota,
   avaliacoes,
   configPontos,
 }) => {
@@ -147,6 +149,18 @@ export const MateriaCardGrade: React.FC<MateriaCardGradeProps> = ({
               Ver Aulas ({item.totalAulas})
             </Button>
           </Link>
+
+          {onLancarNota && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => onLancarNota(materia.id)}
+              className="w-8 h-8 rounded-xl text-cyan-300 hover:text-cyan-200 hover:bg-cyan-500/10 border border-cyan-500/30"
+              title="Lançar nota"
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+            </Button>
+          )}
 
           <Button
             size="icon"

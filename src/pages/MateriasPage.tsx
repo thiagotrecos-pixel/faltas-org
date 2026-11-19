@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Navbar } from '@/components/Navbar'
 import { ModalMateria } from '@/components/ModalMateria'
+import { ModalLancarNota } from '@/components/ModalLancarNota'
 import { Materia, Aula, MateriaStats } from '@/types'
 import { listarMaterias, excluirMateria } from '@/services/materias'
 import { listarAulas } from '@/services/aulas'
@@ -22,6 +23,7 @@ import {
   Clock,
   Sparkles,
   CalendarDays,
+  GraduationCap,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
@@ -70,6 +72,12 @@ export const MateriasPage: React.FC = () => {
   const [materiaParaEditar, setMateriaParaEditar] = useState<Materia | null>(null)
   const [materiaParaExcluir, setMateriaParaExcluir] = useState<Materia | null>(null)
   const [isExcluindo, setIsExcluindo] = useState(false)
+  const [modalNotaAberto, setModalNotaAberto] = useState(false)
+  const [materiaPreSelecionadaNota, setMateriaPreSelecionadaNota] = useState<string | undefined>()
+  const setMateriaPreSelecionadaNotaComModal = (id: string) => {
+    setMateriaPreSelecionadaNota(id)
+    setModalNotaAberto(true)
+  }
 
   const carregarDados = useCallback(async () => {
     setIsLoading(true)
@@ -183,6 +191,22 @@ export const MateriasPage: React.FC = () => {
           </Button>
         </div>
 
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              setMateriaPreSelecionadaNota(filtradas[0]?.materia.id || materias[0]?.id || undefined)
+              setModalNotaAberto(true)
+            }}
+            disabled={materias.length === 0}
+            className="rounded-full border-cyan-500/40 bg-transparent hover:bg-cyan-500/10 text-cyan-300 text-xs font-semibold h-9 px-4 shadow-md shadow-cyan-600/20 gap-1.5"
+          >
+            <GraduationCap className="w-4 h-4" />
+            <span>Lançar Nota</span>
+          </Button>
+        </div>
+
         {/* Período */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <FiltroPeriodo periodos={periodos} value={filtroAtivo} onChange={setFiltroPeriodo} />
@@ -262,6 +286,10 @@ export const MateriasPage: React.FC = () => {
                       onExcluir={setMateriaParaExcluir}
                       avaliacoes={avaliacoesPorMateria[item.materia.id] || []}
                       configPontos={configPontos}
+                      onLancarNota={(id) => {
+                        setMateriaPreSelecionadaNota(id)
+                        setModalNotaAberto(true)
+                      }}
                     />
                   ))}
                 </div>
@@ -288,6 +316,15 @@ export const MateriasPage: React.FC = () => {
         onClose={() => setModalMateriaAberto(false)}
         onSuccess={carregarDados}
         materiaParaEditar={materiaParaEditar}
+      />
+
+      {/* Modal Lançar Nota */}
+      <ModalLancarNota
+        isOpen={modalNotaAberto}
+        onClose={() => setModalNotaAberto(false)}
+        onSuccess={carregarDados}
+        materias={materias}
+        materiaPreSelecionadaId={materiaPreSelecionadaNota}
       />
 
       {/* Confirmação de Exclusão */}
