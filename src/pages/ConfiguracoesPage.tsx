@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Navbar } from '@/components/Navbar'
 import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
 import { PERCENTUAL_AVISO_PADRAO } from '@/services/configuracoes'
+import { useConfigPontos } from '@/hooks/use-config-pontos'
+import { PONTOS_APROVACAO_PADRAO, TOTAL_SEMESTRE_PADRAO } from '@/services/avaliacoes'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -17,6 +19,7 @@ import {
   Timer,
   Info,
   GraduationCap,
+  Award,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { CardInstalarApp } from '@/components/CardInstalarApp'
@@ -65,6 +68,64 @@ export const ConfiguracoesPage: React.FC = () => {
     salvarFaltasRestantes,
     isSalvando,
   } = useConfiguracaoAviso()
+
+  const {
+    config: configPontos,
+    isLoading: isLoadingPontos,
+    isSalvando: isSalvandoPontos,
+    salvar: salvarPontos,
+  } = useConfigPontos()
+  const [pontosAprovacaoLocal, setPontosAprovacaoLocal] = useState<string>(
+    String(PONTOS_APROVACAO_PADRAO),
+  )
+  const [totalSemestreLocal, setTotalSemestreLocal] = useState<string>(
+    String(TOTAL_SEMESTRE_PADRAO),
+  )
+
+  // Sincroniza quando a configuração carrega ou muda em tempo real
+  useEffect(() => {
+    setPontosAprovacaoLocal(String(configPontos.pontosAprovacao))
+  }, [configPontos.pontosAprovacao])
+
+  useEffect(() => {
+    setTotalSemestreLocal(String(configPontos.totalSemestre))
+  }, [configPontos.totalSemestre])
+
+  const pontosAprovacaoDivergente = Number(pontosAprovacaoLocal) !== configPontos.pontosAprovacao
+  const totalSemestreDivergente = Number(totalSemestreLocal) !== configPontos.totalSemestre
+  const pontosDivergentes = pontosAprovacaoDivergente || totalSemestreDivergente
+
+  const salvarConfigPontos = async () => {
+    const media = Math.max(
+      1,
+      Math.round(Number(pontosAprovacaoLocal) * 10) / 10 || PONTOS_APROVACAO_PADRAO,
+    )
+    const total = Math.max(
+      1,
+      Math.round(Number(totalSemestreLocal) * 10) / 10 || TOTAL_SEMESTRE_PADRAO,
+    )
+    if (media > total) {
+      toast({
+        title: 'Valores inconsistentes',
+        description: 'A média de aprovação não pode ser maior que o total do semestre.',
+        variant: 'destructive',
+      })
+      return
+    }
+    const ok = await salvarPontos(media, total)
+    if (ok) {
+      toast({
+        title: 'Configurações de pontos salvas!',
+        description: `Aprovação com ${media} pts em um semestre de ${total} pts.`,
+      })
+    } else {
+      toast({
+        title: 'Erro ao salvar configuração',
+        description: 'Não foi possível salvar os valores de pontos. Tente novamente.',
+        variant: 'destructive',
+      })
+    }
+  }
 
   const [valorLocal, setValorLocal] = useState<number>(percentualAviso)
   // '' = campo vazio (gatilho por faltas restantes desativado)
@@ -364,6 +425,89 @@ export const ConfiguracoesPage: React.FC = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Aprovação por pontos — configuração global */}
+        <Card className="tech-card border tech-border rounded-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+          <CardContent className="p-5 sm:p-6 space-y-5">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                <Award className="w-4.5 h-4.5" />
+              </div>
+              <div className="space-y-0.5">
+                <h2 className="font-bold text-white">Aprovação por pontos</h2>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Define como o app calcula a situação de pontos das matérias. As avaliações são
+                  lançadas dentro da edição de cada matéria.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="space-y-2 p-4 rounded-2xl bg-zinc-900/40 border tech-border">
+                <Label htmlFor="pontos-aprovacao" className="text-xs font-semibold text-zinc-300">
+                  Pontos para passar
+                </Label>
+                <Input
+                  id="pontos-aprovacao"
+                  type="number"
+                  min={1}
+                  step={0.5}
+                  placeholder="Ex.: 60"
+                  value={pontosAprovacaoLocal}
+                  onChange={(e) => setPontosAprovacaoLocal(e.target.value)}
+                  className="bg-[#151a2e] border-zinc-700/60 focus:border-indigo-500 text-sm h-9 font-mono placeholder:text-zinc-600"
+                />
+                <p className="text-[11px] text-zinc-500">Média necessária para aprovação (pts).</p>
+              </div>
+              <div className="space-y-2 p-4 rounded-2xl bg-zinc-900/40 border tech-border">
+                <Label htmlFor="total-semestre" className="text-xs font-semibold text-zinc-300">
+                  Valor total do semestre
+                </Label>
+                <Input
+                  id="total-semestre"
+                  type="number"
+                  min={1}
+                  step={0.5}
+                  placeholder="Ex.: 100"
+                  value={totalSemestreLocal}
+                  onChange={(e) => setTotalSemestreLocal(e.target.value)}
+                  className="bg-[#151a2e] border-zinc-700/60 focus:border-indigo-500 text-sm h-9 font-mono placeholder:text-zinc-600"
+                />
+                <p className="text-[11px] text-zinc-500">Soma máxima de pontos do período (pts).</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-1.5 text-[11px] text-zinc-500">
+                {pontosDivergentes ? (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    Alteração pendente
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    Salvo — padrão de {configPontos.pontosAprovacao} pts em{' '}
+                    {configPontos.totalSemestre} pts
+                  </>
+                )}
+              </div>
+              <Button
+                onClick={salvarConfigPontos}
+                disabled={isLoadingPontos || isSalvandoPontos || !pontosDivergentes}
+                className="rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold h-9 px-5 shadow-md shadow-indigo-600/30 gap-1.5"
+              >
+                {isSalvandoPontos ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Save className="w-3.5 h-3.5" />
+                )}
+                <span>{isSalvandoPontos ? 'Salvando...' : 'Salvar'}</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Instalar o aplicativo (PWA) */}
         <CardInstalarApp />

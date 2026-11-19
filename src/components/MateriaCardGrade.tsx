@@ -3,13 +3,16 @@ import { Link } from 'react-router-dom'
 import { Edit2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Materia, MateriaStats } from '@/types'
+import { Materia, MateriaStats, Avaliacao } from '@/types'
 import { AvatarMateria } from '@/components/AvatarMateria'
+import { PilulaPontos } from '@/components/PilulaPontos'
 
 interface MateriaCardGradeProps {
   item: MateriaStats
   onEditar: (materia: Materia) => void
   onExcluir: (materia: Materia) => void
+  avaliacoes: Avaliacao[]
+  configPontos: { pontosAprovacao: number; totalSemestre: number }
 }
 
 /** Card de matéria usado na grade da aba Matérias (extraído do MateriasPage). */
@@ -17,6 +20,8 @@ export const MateriaCardGrade: React.FC<MateriaCardGradeProps> = ({
   item,
   onEditar,
   onExcluir,
+  avaliacoes,
+  configPontos,
 }) => {
   const { materia } = item
   const cor = materia.cor || '#6366f1'
@@ -124,6 +129,11 @@ export const MateriaCardGrade: React.FC<MateriaCardGradeProps> = ({
               Restam: <strong className="text-zinc-300">{item.faltasRestantesHoras}h</strong>
             </p>
           </div>
+        </div>
+
+        {/* Pílula de aprovação por pontos */}
+        <div className="flex items-center">
+          <PilulaPontos materia={materia} avaliacoes={avaliacoes} config={configPontos} />
         </div>
 
         {/* Botões de Ação */}

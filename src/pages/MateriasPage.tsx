@@ -6,6 +6,8 @@ import { listarMaterias, excluirMateria } from '@/services/materias'
 import { listarAulas } from '@/services/aulas'
 import { calcularStatsMateria } from '@/services/calculations'
 import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
+import { useConfigPontos } from '@/hooks/use-config-pontos'
+import { useAvaliacoes } from '@/hooks/use-avaliacoes'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -47,6 +49,8 @@ import {
 export const MateriasPage: React.FC = () => {
   const { toast } = useToast()
   const { percentualAviso, faltasRestantesAviso } = useConfiguracaoAviso()
+  const { config: configPontos } = useConfigPontos()
+  const { avaliacoesPorMateria } = useAvaliacoes()
   const [materias, setMaterias] = useState<Materia[]>([])
   const [aulas, setAulas] = useState<Aula[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -256,6 +260,8 @@ export const MateriasPage: React.FC = () => {
                         setModalMateriaAberto(true)
                       }}
                       onExcluir={setMateriaParaExcluir}
+                      avaliacoes={avaliacoesPorMateria[item.materia.id] || []}
+                      configPontos={configPontos}
                     />
                   ))}
                 </div>

@@ -15,12 +15,14 @@ import { criarMateria, atualizarMateria, imagemMateriaUrl } from '@/services/mat
 import { calcularLimiteFaltas } from '@/services/calculations'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
+import { useConfigPontos } from '@/hooks/use-config-pontos'
+import { SecaoAvaliacoes } from '@/components/SecaoAvaliacoes'
 import { PERCENTUAL_REPROVACAO_PADRAO } from '@/services/calculations'
 import { useToast } from '@/hooks/use-toast'
 import { usePeriodos } from '@/hooks/use-periodos'
 import { SelecionadorImagemWeb } from '@/components/SelecionadorImagemWeb'
 import { SelecionadorCorEspectro } from '@/components/SelecionadorCorEspectro'
-import { BookOpen, Sparkles, Clock, AlertCircle, ImagePlus, Globe, X } from 'lucide-react'
+import { BookOpen, Sparkles, Clock, AlertCircle, ImagePlus, Globe, X, Award } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ModalMateriaProps {
@@ -42,6 +44,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
 }) => {
   const { toast } = useToast()
   const { faltasRestantesAviso } = useConfiguracaoAviso()
+  const { config: configPontos } = useConfigPontos()
   const isEdicao = !!materiaParaEditar
 
   const [nome, setNome] = useState(materiaParaEditar?.nome || '')
@@ -693,6 +696,23 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
             <Label className="text-xs text-zinc-300">Cor de destaque (espectro livre)</Label>
             <SelecionadorCorEspectro cor={cor} onChange={setCor} />
           </div>
+
+          {/* Avaliações — apenas na edição (a matéria precisa existir para ter pontos lançados) */}
+          {isEdicao && materiaParaEditar && (
+            <div className="space-y-2 border-t tech-border pt-4">
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                  <Award className="w-3.5 h-3.5" />
+                  Avaliações e pontuações
+                </h3>
+                <p className="text-[11px] text-zinc-500 mt-0.5">
+                  Lance P1, P2, trabalhos etc. para acompanhar a aprovação por pontos. Salvo no
+                  banco imediatamente, sem precisar salvar a matéria.
+                </p>
+              </div>
+              <SecaoAvaliacoes materia={materiaParaEditar} config={configPontos} />
+            </div>
+          )}
 
           <DialogFooter className="pt-2 gap-2">
             <Button

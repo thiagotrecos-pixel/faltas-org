@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { MateriaStats } from '@/types'
+import { Materia, MateriaStats, Avaliacao } from '@/types'
 import { imagemMateriaUrl } from '@/services/materias'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { PilulaPontos } from '@/components/PilulaPontos'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -17,13 +18,17 @@ import {
 interface MateriaCardProps {
   stats: MateriaStats
   onLancarAula: (materiaId: string) => void
-  onEditarMateria: (materia: MateriaStats['materia']) => void
+  onEditarMateria: (materia: Materia) => void
+  avaliacoes: Avaliacao[]
+  configPontos: { pontosAprovacao: number; totalSemestre: number }
 }
 
 export const MateriaCard: React.FC<MateriaCardProps> = ({
   stats,
   onLancarAula,
   onEditarMateria,
+  avaliacoes,
+  configPontos,
 }) => {
   const { materia } = stats
   const cor = materia.cor || '#6366f1'
@@ -134,6 +139,11 @@ export const MateriaCard: React.FC<MateriaCardProps> = ({
             <StatusIcon className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">{statusBadge.text}</span>
           </div>
+        </div>
+
+        {/* Pílula de aprovação por pontos */}
+        <div className="flex items-center">
+          <PilulaPontos materia={materia} avaliacoes={avaliacoes} config={configPontos} />
         </div>
 
         {/* Big Percentage Progress Bar & Indicators */}

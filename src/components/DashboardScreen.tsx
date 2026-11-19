@@ -12,6 +12,8 @@ import { listarMaterias } from '@/services/materias'
 import { listarAulas } from '@/services/aulas'
 import { calcularStatsMateria, PERCENTUAL_REPROVACAO_PADRAO } from '@/services/calculations'
 import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
+import { useConfigPontos } from '@/hooks/use-config-pontos'
+import { useAvaliacoes } from '@/hooks/use-avaliacoes'
 import { usePeriodos } from '@/hooks/use-periodos'
 import { FiltroPeriodo } from '@/components/FiltroPeriodo'
 import { FILTRO_TODOS, filtroValido, pertencePeriodo } from '@/services/periodos'
@@ -32,6 +34,8 @@ import {
 export const DashboardScreen: React.FC = () => {
   const { user } = useAuth()
   const { percentualAviso, faltasRestantesAviso } = useConfiguracaoAviso()
+  const { config: configPontos } = useConfigPontos()
+  const { avaliacoesPorMateria } = useAvaliacoes()
   const [materias, setMaterias] = useState<Materia[]>([])
   const [aulas, setAulas] = useState<Aula[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -329,6 +333,8 @@ export const DashboardScreen: React.FC = () => {
                   stats={stats}
                   onLancarAula={handleLancarAula}
                   onEditarMateria={handleEditarMateria}
+                  avaliacoes={avaliacoesPorMateria[stats.materia.id] || []}
+                  configPontos={configPontos}
                 />
               ))}
             </div>
