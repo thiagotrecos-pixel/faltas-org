@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { Navbar } from '@/components/Navbar'
-import { ModalMateria } from '@/components/ModalMateria'
 import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
 import { PERCENTUAL_AVISO_PADRAO } from '@/services/configuracoes'
 import { Button } from '@/components/ui/button'
@@ -9,10 +8,54 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { useToast } from '@/hooks/use-toast'
-import { RefreshCw, Settings2, BellRing, CheckCircle2, Save, Timer, Info } from 'lucide-react'
+import {
+  RefreshCw,
+  Settings2,
+  BellRing,
+  CheckCircle2,
+  Save,
+  Timer,
+  Info,
+  GraduationCap,
+} from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export const ConfiguracoesPage: React.FC = () => {
   const { toast } = useToast()
+  const { user, atualizarPerfil } = useAuth()
+
+  const [universidadeLocal, setUniversidadeLocal] = useState<string>(
+    user?.universidade?.trim() || '',
+  )
+  const [salvandoUniversidade, setSalvandoUniversidade] = useState(false)
+
+  // Sincroniza se o perfil mudar em tempo real (ou após login)
+  useEffect(() => {
+    setUniversidadeLocal(user?.universidade?.trim() || '')
+  }, [user?.universidade])
+
+  const salvarUniversidade = async () => {
+    setSalvandoUniversidade(true)
+    try {
+      await atualizarPerfil({ universidade: universidadeLocal.trim() })
+      toast({
+        title: 'Universidade salva!',
+        description: universidadeLocal.trim()
+          ? `Ela aparece ao lado do nome do app no menu superior.`
+          : 'O menu agora mostra apenas o nome do aplicativo.',
+      })
+    } catch (err: unknown) {
+      console.error(err)
+      toast({
+        title: 'Erro ao salvar universidade',
+        description: (err as { message?: string })?.message || 'Tente novamente.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSalvandoUniversidade(false)
+    }
+  }
+
   const {
     percentualAviso,
     faltasRestantesAviso,
@@ -21,7 +64,6 @@ export const ConfiguracoesPage: React.FC = () => {
     salvarFaltasRestantes,
     isSalvando,
   } = useConfiguracaoAviso()
-  const [modalMateriaAberto, setModalMateriaAberto] = useState(false)
 
   const [valorLocal, setValorLocal] = useState<number>(percentualAviso)
   // '' = campo vazio (gatilho por faltas restantes desativado)
@@ -75,7 +117,7 @@ export const ConfiguracoesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#070913] text-zinc-100 flex flex-col">
-      <Navbar onOpenNovaMateria={() => setModalMateriaAberto(true)} totalAlertas={0} />
+      <Navbar totalAlertas={0} />
 
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-28 md:pb-8 space-y-6">
         {/* Header */}
@@ -92,6 +134,57 @@ export const ConfiguracoesPage: React.FC = () => {
             tenham um limite específico.
           </p>
         </div>
+
+        {/* Perfil — universidade */}
+        <Card className="tech-card border tech-border rounded-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+          <CardContent className="p-5 sm:p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                <GraduationCap className="w-4.5 h-4.5" />
+              </div>
+              <div className="space-y-0.5">
+                <h2 className="font-bold text-white">Perfil</h2>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  O nome da sua universidade aparece ao lado do nome do app no menu superior. Deixe
+                  em branco para exibi-lo sem universidade.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 p-4 rounded-2xl bg-zinc-900/40 border tech-border">
+              <Label htmlFor="universidade" className="text-xs font-semibold text-zinc-300">
+                Universidade
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="universidade"
+                  type="text"
+                  maxLength={120}
+                  placeholder="Ex.: UFMG"
+                  value={universidadeLocal}
+                  onChange={(e) => setUniversidadeLocal(e.target.value)}
+                  className="bg-[#151a2e] border-zinc-700/60 focus:border-indigo-500 text-sm h-9 placeholder:text-zinc-600"
+                />
+                <Button
+                  onClick={salvarUniversidade}
+                  disabled={
+                    salvandoUniversidade ||
+                    universidadeLocal.trim() === (user?.universidade?.trim() || '')
+                  }
+                  className="rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold h-9 px-4 shadow-md shadow-indigo-600/30 gap-1.5 shrink-0"
+                >
+                  {salvandoUniversidade ? (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5" />
+                  )}
+                  <span>{salvandoUniversidade ? 'Salvando...' : 'Salvar'}</span>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="py-16 text-center text-zinc-400 flex flex-col items-center justify-center gap-3">
@@ -286,12 +379,6 @@ export const ConfiguracoesPage: React.FC = () => {
           </div>
         </div>
       </main>
-
-      <ModalMateria
-        isOpen={modalMateriaAberto}
-        onClose={() => setModalMateriaAberto(false)}
-        onSuccess={() => {}}
-      />
     </div>
   )
 }

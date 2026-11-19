@@ -7,9 +7,11 @@ interface AuthContextType {
   isLoading: boolean
   login: (email: string, pass: string) => Promise<void>
   loginAsDemo: () => Promise<void>
-  signup: (email: string, pass: string, name: string) => Promise<void>
+  signup: (email: string, pass: string, name: string, universidade?: string) => Promise<void>
   requestPasswordReset: (email: string) => Promise<void>
   logout: () => void
+  /** Atualiza o perfil do usuário logado (ex.: nome, universidade) e reflete no authStore. */
+  atualizarPerfil: (dados: Partial<Pick<User, 'name' | 'universidade'>>) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -51,12 +53,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
-  const signup = async (email: string, pass: string, name: string) => {
+  const signup = async (email: string, pass: string, name: string, universidade?: string) => {
     const createdUser = await pb.collection('users').create({
       email: email.trim(),
       password: pass,
       passwordConfirm: pass,
       name: name.trim(),
+      universidade: universidade?.trim() || '',
     })
 
     await pb.collection('users').authWithPassword(email.trim(), pass)
@@ -94,6 +97,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null)
   }
 
+  const atualizarPerfil = async (dados: Partial<Pick<User, 'name' | 'universidade'>>) => {
+    if (!user) throw new Error('Usuário não autenticado')
+    await pb.collection('users').update(user.id, dados)
+    const atualizado = { ...user, ...dados } as User
+    // Mantém o authStore (e toda a árvore de componentes) em sincronia
+    const model = pb.authStore.model
+    if (model) {
+      pb.authStore.save(pb.authStore.token, { ...model, ...dados })
+    }
+    setUser(atualizado)
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -104,6 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signup,
         requestPasswordReset,
         logout,
+        atualizarPerfil,
       }}
     >
       {children}

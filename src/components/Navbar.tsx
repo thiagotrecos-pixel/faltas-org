@@ -44,6 +44,7 @@ const navItems = [
 export const Navbar: React.FC<NavbarProps> = ({ onOpenNovaMateria, totalAlertas = 0 }) => {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const universidade = user?.universidade?.trim() || ''
 
   return (
     <>
@@ -59,9 +60,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenNovaMateria, totalAlertas 
                 <span className="font-bold text-base tracking-tight text-white group-hover:text-indigo-300 transition-colors">
                   Falta<span className="text-indigo-400">.org</span>
                 </span>
-                <span className="text-[10px] uppercase font-mono tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  Univ
-                </span>
+                {universidade && (
+                  <span
+                    className="hidden sm:inline-flex text-[11px] font-medium text-zinc-300 truncate max-w-[160px]"
+                    title={universidade}
+                  >
+                    <span className="text-zinc-600 mx-0.5">·</span>
+                    {universidade}
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-zinc-400 hidden sm:block">
                 Frequência e limite de 25%

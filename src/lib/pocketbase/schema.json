@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T01:45:14.356Z",
+  "generatedAt": "2026-11-19T01:50:11.362Z",
   "collections": [
     {
       "name": "users",
@@ -37,6 +37,12 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "universidade",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [

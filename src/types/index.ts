@@ -2,6 +2,8 @@ export interface User {
   id: string
   email: string
   name?: string
+  /** Nome da universidade informado no cadastro/perfil (vazio = não informada). */
+  universidade?: string
   avatar?: string
   created: string
   updated: string

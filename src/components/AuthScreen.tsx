@@ -11,6 +11,7 @@ import {
   Lock,
   Mail,
   User,
+  School,
   ArrowRight,
   ShieldCheck,
   AlertCircle,
@@ -25,6 +26,7 @@ export const AuthScreen: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [universidade, setUniversidade] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [demoLoading, setDemoLoading] = useState(false)
 
@@ -84,7 +86,7 @@ export const AuthScreen: React.FC = () => {
           setIsLoading(false)
           return
         }
-        await signup(email, password, name)
+        await signup(email, password, name, universidade)
         toast({
           title: 'Conta criada com sucesso!',
           description: 'Seja bem-vindo ao Falta.org.',
@@ -219,6 +221,25 @@ export const AuthScreen: React.FC = () => {
                       onChange={(e) => setName(e.target.value)}
                       className="bg-[#12162a] border-zinc-700/60 pl-9 text-xs h-9 text-zinc-100"
                       required
+                    />
+                  </div>
+                </div>
+              )}
+
+              {mode === 'signup' && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="universidade" className="text-xs text-zinc-300">
+                    Universidade <span className="text-zinc-500 font-normal">(opcional)</span>
+                  </Label>
+                  <div className="relative">
+                    <School className="w-4 h-4 text-zinc-500 absolute left-3 top-2.5" />
+                    <Input
+                      id="universidade"
+                      type="text"
+                      placeholder="Ex: UFMG"
+                      value={universidade}
+                      onChange={(e) => setUniversidade(e.target.value)}
+                      className="bg-[#12162a] border-zinc-700/60 pl-9 text-xs h-9 text-zinc-100"
                     />
                   </div>
                 </div>
