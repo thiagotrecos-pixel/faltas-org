@@ -13,6 +13,9 @@ import { Label } from '@/components/ui/label'
 import { Materia } from '@/types'
 import { criarMateria, atualizarMateria, imagemMateriaUrl } from '@/services/materias'
 import { calcularLimiteFaltas } from '@/services/calculations'
+import { Checkbox } from '@/components/ui/checkbox'
+import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
+import { PERCENTUAL_REPROVACAO_PADRAO } from '@/services/calculations'
 import { useToast } from '@/hooks/use-toast'
 import { usePeriodos } from '@/hooks/use-periodos'
 import { BookOpen, Sparkles, Clock, AlertCircle, ImagePlus, X } from 'lucide-react'
@@ -47,6 +50,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
   materiaParaEditar,
 }) => {
   const { toast } = useToast()
+  const { faltasRestantesAviso } = useConfiguracaoAviso()
   const isEdicao = !!materiaParaEditar
 
   const [nome, setNome] = useState(materiaParaEditar?.nome || '')
@@ -65,6 +69,19 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
   const [usarLimiteAuto, setUsarLimiteAuto] = useState(true)
   const [percentualAvisoEspecifico, setPercentualAvisoEspecifico] = useState(
     materiaParaEditar?.percentual_aviso ? String(materiaParaEditar.percentual_aviso) : '',
+  )
+  // Percentual de reprovação próprio (vazio = padrão do app, 25%)
+  const [percentualReprovacao, setPercentualReprovacao] = useState(
+    materiaParaEditar?.percentual_reprovacao ? String(materiaParaEditar.percentual_reprovacao) : '',
+  )
+  // Aviso por faltas restantes próprio (checkbox marcado = usar o padrão global)
+  const [usarFaltasRestantesGlobal, setUsarFaltasRestantesGlobal] = useState(
+    !materiaParaEditar?.faltas_restantes_aviso,
+  )
+  const [faltasRestantesProprias, setFaltasRestantesProprias] = useState(
+    materiaParaEditar?.faltas_restantes_aviso
+      ? String(materiaParaEditar.faltas_restantes_aviso)
+      : '',
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { periodos } = usePeriodos()
@@ -90,10 +107,26 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
       setCargaHoraria(String(materiaParaEditar.carga_horaria))
       setHorasPorAula(String(materiaParaEditar.horas_por_aula || 2))
       setCor(materiaParaEditar.cor || '#6366f1')
+      const pctSalvo = materiaParaEditar.percentual_reprovacao || PERCENTUAL_REPROVACAO_PADRAO
+      const limiteAutoSalvo = calcularLimiteFaltas(materiaParaEditar.carga_horaria, pctSalvo)
+      // Modo automático quando o limite salvo corresponde ao cálculo pelo
+      // percentual da matéria — assim mudar o percentual recalcula o limite.
+      const auto = Math.abs((materiaParaEditar.limite_faltas || 0) - limiteAutoSalvo) < 0.05
+      setUsarLimiteAuto(auto)
       setLimitePersonalizado(String(materiaParaEditar.limite_faltas))
-      setUsarLimiteAuto(false)
       setPercentualAvisoEspecifico(
         materiaParaEditar.percentual_aviso ? String(materiaParaEditar.percentual_aviso) : '',
+      )
+      setPercentualReprovacao(
+        materiaParaEditar.percentual_reprovacao
+          ? String(materiaParaEditar.percentual_reprovacao)
+          : '',
+      )
+      setUsarFaltasRestantesGlobal(!materiaParaEditar.faltas_restantes_aviso)
+      setFaltasRestantesProprias(
+        materiaParaEditar.faltas_restantes_aviso
+          ? String(materiaParaEditar.faltas_restantes_aviso)
+          : '',
       )
     } else {
       setNome('')
@@ -105,11 +138,18 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
       setLimitePersonalizado('')
       setUsarLimiteAuto(true)
       setPercentualAvisoEspecifico('')
+      setPercentualReprovacao('')
+      setUsarFaltasRestantesGlobal(true)
+      setFaltasRestantesProprias('')
     }
   }, [materiaParaEditar, isOpen])
 
   const chNum = Number(cargaHoraria) || 0
-  const limiteCalculadoAuto = calcularLimiteFaltas(chNum)
+  const pctReprovacaoEfetivo =
+    percentualReprovacao.trim() && Number(percentualReprovacao) > 0
+      ? Number(percentualReprovacao)
+      : PERCENTUAL_REPROVACAO_PADRAO
+  const limiteCalculadoAuto = calcularLimiteFaltas(chNum, pctReprovacaoEfetivo)
   const hAulaNum = Number(horasPorAula) || 2
   const maxFaltasAulas =
     hAulaNum > 0
@@ -199,6 +239,12 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
           percentual_aviso: percentualAvisoEspecifico.trim()
             ? Number(percentualAvisoEspecifico)
             : null,
+          percentual_reprovacao: percentualReprovacao.trim() ? Number(percentualReprovacao) : null,
+          faltas_restantes_aviso: usarFaltasRestantesGlobal
+            ? null
+            : faltasRestantesProprias.trim()
+              ? Number(faltasRestantesProprias)
+              : null,
           imagem: novoArquivoImagem,
           remover_imagem: removerImagem,
           periodo_id: periodoId || null,
@@ -219,12 +265,18 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
           percentual_aviso: percentualAvisoEspecifico.trim()
             ? Number(percentualAvisoEspecifico)
             : null,
+          percentual_reprovacao: percentualReprovacao.trim() ? Number(percentualReprovacao) : null,
+          faltas_restantes_aviso: usarFaltasRestantesGlobal
+            ? null
+            : faltasRestantesProprias.trim()
+              ? Number(faltasRestantesProprias)
+              : null,
           imagem: novoArquivoImagem,
           periodo_id: periodoId || null,
         })
         toast({
           title: 'Matéria cadastrada!',
-          description: `"${nome}" cadastrada com limite de ${limiteFinal}h de faltas (25%).`,
+          description: `"${nome}" cadastrada com limite de ${limiteFinal}h de faltas (${pctReprovacaoEfetivo}%).`,
         })
       }
       limparImagemEscolhida()
@@ -261,8 +313,8 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
             </DialogTitle>
           </div>
           <DialogDescription className="text-xs text-zinc-400">
-            Cadastre o nome e a carga horária total para calcular o limite automático de 25% de
-            faltas.
+            Cadastre o nome e a carga horária total para calcular o limite automático de{' '}
+            {PERCENTUAL_REPROVACAO_PADRAO}% de faltas.
           </DialogDescription>
         </DialogHeader>
 
@@ -442,7 +494,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
             </div>
             <div className="space-y-1 text-xs">
               <div className="flex items-center gap-1.5 font-semibold text-indigo-300">
-                <span>Limite oficial calculado (25%):</span>
+                <span>Limite oficial calculado ({pctReprovacaoEfetivo}%):</span>
                 <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 font-mono text-[11px]">
                   {usarLimiteAuto
                     ? limiteCalculadoAuto
@@ -457,6 +509,40 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
                 específico desta matéria).
               </p>
             </div>
+          </div>
+
+          {/* Percentual de reprovação da matéria (opcional) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="percentualReprovacao" className="text-xs text-zinc-300">
+                Percentual de reprovação (% da carga)
+              </Label>
+              <button
+                type="button"
+                onClick={() => setPercentualReprovacao('')}
+                className="text-[11px] text-indigo-400 hover:underline"
+              >
+                Usar padrão ({PERCENTUAL_REPROVACAO_PADRAO}%)
+              </button>
+            </div>
+            <div className="relative">
+              <Input
+                id="percentualReprovacao"
+                type="number"
+                min="1"
+                max="99"
+                step="1"
+                placeholder={`Vazio = padrão do app (${PERCENTUAL_REPROVACAO_PADRAO}%)`}
+                value={percentualReprovacao}
+                onChange={(e) => setPercentualReprovacao(e.target.value)}
+                className="bg-[#151a2e] border-zinc-700/60 focus:border-indigo-500 text-xs h-8 pr-8"
+              />
+              <span className="absolute right-3 top-1.5 text-xs text-zinc-500">%</span>
+            </div>
+            <p className="text-[11px] text-zinc-500">
+              Percentual da carga horária que, quando acumulado em faltas, reprova a matéria. Deixe
+              em branco para manter o padrão de {PERCENTUAL_REPROVACAO_PADRAO}%.
+            </p>
           </div>
 
           {/* Limite de aviso específico (opcional) */}
@@ -493,6 +579,48 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
             </p>
           </div>
 
+          {/* Aviso por faltas restantes próprio (opcional) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="faltasRestantesProprias" className="text-xs text-zinc-300">
+                Aviso por faltas restantes (aulas)
+              </Label>
+              <label className="inline-flex items-center gap-1.5 text-[11px] text-indigo-400 cursor-pointer select-none">
+                <Checkbox
+                  checked={usarFaltasRestantesGlobal}
+                  onCheckedChange={(checked) => setUsarFaltasRestantesGlobal(checked === true)}
+                />
+                Usar padrão global
+              </label>
+            </div>
+            <div className="relative">
+              <Input
+                id="faltasRestantesProprias"
+                type="number"
+                min="1"
+                max="999"
+                step="1"
+                disabled={usarFaltasRestantesGlobal}
+                placeholder={
+                  usarFaltasRestantesGlobal
+                    ? faltasRestantesAviso > 0
+                      ? `Usando o global (${faltasRestantesAviso} aula(s))`
+                      : 'Global desativado — só percentual'
+                    : 'Ex.: 3'
+                }
+                value={usarFaltasRestantesGlobal ? '' : faltasRestantesProprias}
+                onChange={(e) => setFaltasRestantesProprias(e.target.value.replace(/[^0-9]/g, ''))}
+                className="bg-[#151a2e] border-zinc-700/60 focus:border-indigo-500 text-xs h-8 pr-8 disabled:opacity-60"
+              />
+              <span className="absolute right-3 top-1.5 text-xs text-zinc-500">aulas</span>
+            </div>
+            <p className="text-[11px] text-zinc-500">
+              Avisa quando restar esse número de aulas para o limite de faltas desta matéria. Com
+              "usar padrão global" marcado, vale o valor definido nas Configurações
+              {faltasRestantesAviso > 0 ? ` (${faltasRestantesAviso} aula(s)).` : '.'}
+            </p>
+          </div>
+
           {/* Opção de ajuste manual do limite */}
           <div className="pt-1">
             {!usarLimiteAuto ? (
@@ -506,7 +634,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
                     onClick={() => setUsarLimiteAuto(true)}
                     className="text-[11px] text-indigo-400 hover:underline"
                   >
-                    Usar padrão 25%
+                    Usar padrão ({pctReprovacaoEfetivo}%)
                   </button>
                 </div>
                 <Input

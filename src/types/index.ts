@@ -18,6 +18,10 @@ export interface Materia {
   horas_por_aula?: number
   cor?: string
   percentual_aviso?: number | null
+  /** Percentual de reprovação da matéria (vazio = padrão do app, 25%). */
+  percentual_reprovacao?: number | null
+  /** Gatilho de aviso próprio por faltas restantes (vazio = usa o global). */
+  faltas_restantes_aviso?: number | null
   /** Nome do arquivo de imagem enviado (campo file do PocketBase). */
   imagem?: string
   /** Período letivo da matéria (vazio/null = sem período). */
@@ -38,7 +42,7 @@ export interface Periodo {
 export interface Configuracao {
   id: string
   user_id: string
-  chave: 'aviso_preventivo'
+  chave: 'aviso_preventivo' | 'aviso_faltas_restantes'
   valor: number
   created: string
   updated: string
@@ -72,5 +76,12 @@ export interface MateriaStats {
   isAlerta: boolean // >= percentual de aviso configurado
   isEstourado: boolean // >= 100% do limite
   percentualAviso: number // percentual da cota usado como gatilho do alerta
+  /** Gatilho por faltas restantes que ficou ativo para a matéria (null = desativado). */
+  gatilhoFaltasRestantes: number | null
+  /** Qual gatilho disparou o alerta (quando os dois estão valendo, 'ambos'). */
+  motivoAlerta: 'percentual' | 'faltas_restantes' | 'ambos' | null
+  isAlertaPercentual: boolean
+  isAlertaFaltasRestantes: boolean
+  percentualReprovacao: number // percentual da carga usado como limite de reprovação
   statusAlerta: 'seguro' | 'alerta' | 'reprovado'
 }

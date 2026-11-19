@@ -6,7 +6,7 @@ import { ModalMateria } from '@/components/ModalMateria'
 import { Materia, Aula, MateriaStats } from '@/types'
 import { listarMaterias } from '@/services/materias'
 import { listarAulas } from '@/services/aulas'
-import { calcularStatsMateria } from '@/services/calculations'
+import { calcularStatsMateria, PERCENTUAL_REPROVACAO_PADRAO } from '@/services/calculations'
 import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 
 export const AlertasPage: React.FC = () => {
-  const { percentualAviso } = useConfiguracaoAviso()
+  const { percentualAviso, faltasRestantesAviso } = useConfiguracaoAviso()
   const [materias, setMaterias] = useState<Materia[]>([])
   const [aulas, setAulas] = useState<Aula[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -50,7 +50,7 @@ export const AlertasPage: React.FC = () => {
 
   const statsPorMateria: MateriaStats[] = materias.map((mat) => {
     const aulasDessa = aulas.filter((a) => a.materia_id === mat.id)
-    return calcularStatsMateria(mat, aulasDessa, percentualAviso)
+    return calcularStatsMateria(mat, aulasDessa, percentualAviso, faltasRestantesAviso)
   })
 
   const criticas = statsPorMateria.filter((s) => s.isEstourado)
@@ -82,8 +82,11 @@ export const AlertasPage: React.FC = () => {
               <span>Central de Alertas de Faltas</span>
             </h1>
             <p className="text-xs sm:text-sm text-zinc-400">
-              Notificações automáticas ativadas ao atingir {percentualAviso}% da cota limite ou em
-              caso de risco de reprovação.
+              Notificações automáticas ao atingir {percentualAviso}% da cota limite
+              {faltasRestantesAviso > 0
+                ? ` ou quando restarem ${faltasRestantesAviso} faltável(is) para o limite`
+                : ''}
+              , ou em caso de risco de reprovação.
             </p>
           </div>
         </div>
@@ -97,11 +100,15 @@ export const AlertasPage: React.FC = () => {
             <div className="space-y-1 text-xs">
               <h3 className="font-bold text-amber-200">
                 Gatilho do Alerta: {percentualAviso}% da cota
+                {faltasRestantesAviso > 0 ? ` OU ${faltasRestantesAviso} faltável(is)` : ''}
               </h3>
               <p className="text-zinc-400 text-[11px] leading-relaxed">
                 Quando você consome {percentualAviso}% da sua folga de faltas (ex:{' '}
-                {Math.round(15 * (percentualAviso / 100) * 10) / 10}h de um limite de 15h), a
-                matéria entra imediatamente nesta central para que você não perca a aprovação na
+                {Math.round(15 * (percentualAviso / 100) * 10) / 10}h de um limite de 15h)
+                {faltasRestantesAviso > 0
+                  ? `, ou quando restarem apenas ${faltasRestantesAviso} aula(s) faltáveis antes do limite`
+                  : ''}
+                , a matéria entra imediatamente nesta central para que você não perca a aprovação na
                 reta final.
               </p>
             </div>
@@ -112,10 +119,13 @@ export const AlertasPage: React.FC = () => {
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div className="space-y-1 text-xs">
-              <h3 className="font-bold text-indigo-200">Regra de Ouro: Máximo 25% de faltas</h3>
+              <h3 className="font-bold text-indigo-200">
+                Regra de Ouro: Máximo {PERCENTUAL_REPROVACAO_PADRAO}% de faltas
+              </h3>
               <p className="text-zinc-400 text-[11px] leading-relaxed">
                 Disciplinas com carga de 60h permitem no máximo 15h de ausência. Cargas de 80h
-                permitem até 20h. Faltar além disso acarreta reprovação automática por frequência.
+                permitem até 20h. Cada matéria pode ter um teto próprio (definido no cadastro);
+                faltar além disso acarreta reprovação automática por frequência.
               </p>
             </div>
           </div>
@@ -182,8 +192,8 @@ export const AlertasPage: React.FC = () => {
                           <p className="text-xs text-rose-200/90 leading-relaxed pt-1">
                             Você acumulou <strong>{item.horasFaltas}h de faltas</strong> (
                             {item.totalFaltas} ausências), superando o teto máximo permitido de{' '}
-                            <strong>{item.materia.limite_faltas}h</strong> (25% da carga de{' '}
-                            {item.materia.carga_horaria}h).
+                            <strong>{item.materia.limite_faltas}h</strong> (
+                            {item.percentualReprovacao}% da carga de {item.materia.carga_horaria}h).
                           </p>
                         </div>
 
@@ -227,7 +237,7 @@ export const AlertasPage: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                   <h2 className="text-base font-bold text-amber-300 uppercase tracking-wider">
-                    Perto do Limite de 25% — Alerta Preventivo ({emAlerta.length})
+                    Alerta Preventivo ({emAlerta.length})
                   </h2>
                 </div>
 

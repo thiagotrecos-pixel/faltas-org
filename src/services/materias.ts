@@ -24,6 +24,10 @@ export interface CriarMateriaInput {
   cor?: string
   /** Limite de aviso específico da matéria (1–99). Vazio = usa o global. */
   percentual_aviso?: number | null
+  /** Percentual de reprovação próprio da matéria (1–99). Vazio = padrão do app (25%). */
+  percentual_reprovacao?: number | null
+  /** Gatilho próprio por faltas restantes (>=1). Vazio = usa o global. */
+  faltas_restantes_aviso?: number | null
   /** Arquivo de imagem escolhido pelo usuário (upload). */
   imagem?: File | null
   /** Remove a imagem atual da matéria (envia null para o PocketBase). */
@@ -78,6 +82,14 @@ export async function criarMateria(dados: CriarMateriaInput): Promise<Materia> {
       dados.percentual_aviso != null && dados.percentual_aviso > 0
         ? Math.min(99, Math.max(1, Math.round(dados.percentual_aviso)))
         : null,
+    percentual_reprovacao:
+      dados.percentual_reprovacao != null && dados.percentual_reprovacao > 0
+        ? Math.min(99, Math.max(1, Math.round(dados.percentual_reprovacao)))
+        : null,
+    faltas_restantes_aviso:
+      dados.faltas_restantes_aviso != null && dados.faltas_restantes_aviso > 0
+        ? Math.max(1, Math.round(dados.faltas_restantes_aviso))
+        : null,
   }
 
   const formData = buildMateriaFormData(payload)
@@ -107,6 +119,18 @@ export async function atualizarMateria(
     payload.percentual_aviso =
       dados.percentual_aviso != null && dados.percentual_aviso > 0
         ? Math.min(99, Math.max(1, Math.round(dados.percentual_aviso)))
+        : null
+  }
+  if (dados.percentual_reprovacao !== undefined) {
+    payload.percentual_reprovacao =
+      dados.percentual_reprovacao != null && dados.percentual_reprovacao > 0
+        ? Math.min(99, Math.max(1, Math.round(dados.percentual_reprovacao)))
+        : null
+  }
+  if (dados.faltas_restantes_aviso !== undefined) {
+    payload.faltas_restantes_aviso =
+      dados.faltas_restantes_aviso != null && dados.faltas_restantes_aviso > 0
+        ? Math.max(1, Math.round(dados.faltas_restantes_aviso))
         : null
   }
   if (dados.periodo_id !== undefined) payload.periodo_id = dados.periodo_id || null

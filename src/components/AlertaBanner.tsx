@@ -7,11 +7,14 @@ interface AlertaBannerProps {
   statsMaterias: MateriaStats[]
   /** Percentual global configurado para o aviso preventivo (padrão 75). */
   percentualAviso?: number
+  /** Gatilho global por faltas restantes (0 = desativado). */
+  faltasRestantesAviso?: number
 }
 
 export const AlertaBanner: React.FC<AlertaBannerProps> = ({
   statsMaterias,
   percentualAviso = 75,
+  faltasRestantesAviso = 0,
 }) => {
   const criticas = statsMaterias.filter((s) => s.isEstourado)
   const emAlerta = statsMaterias.filter((s) => s.isAlerta)
@@ -28,7 +31,11 @@ export const AlertaBanner: React.FC<AlertaBannerProps> = ({
               Frequência em dia em todas as matérias!
             </p>
             <p className="text-[11px] text-emerald-300/70">
-              Nenhuma matéria atingiu {percentualAviso}% da cota permitida de faltas.
+              Nenhuma matéria atingiu os gatilhos de aviso ({percentualAviso}% da cota
+              {faltasRestantesAviso > 0
+                ? ` ou ${faltasRestantesAviso} faltável(is) para o limite`
+                : ''}
+              ).
             </p>
           </div>
         </div>
@@ -80,8 +87,10 @@ export const AlertaBanner: React.FC<AlertaBannerProps> = ({
               </p>
               <p className="text-[11px] text-amber-300/80">
                 {emAlerta
-                  .map(
-                    (a) => `${a.materia.nome} (restam apenas ${a.faltasRestantesHoras}h de folga)`,
+                  .map((a) =>
+                    a.motivoAlerta === 'faltas_restantes'
+                      ? `${a.materia.nome} (faltável(is): ${a.aulasRestantesPossiveis})`
+                      : `${a.materia.nome} (restam apenas ${a.faltasRestantesHoras}h de folga)`,
                   )
                   .join(' • ')}
               </p>

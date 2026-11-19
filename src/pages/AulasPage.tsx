@@ -43,7 +43,7 @@ import {
 
 export const AulasPage: React.FC = () => {
   const { toast } = useToast()
-  const { percentualAviso } = useConfiguracaoAviso()
+  const { percentualAviso, faltasRestantesAviso } = useConfiguracaoAviso()
   const [searchParams, setSearchParams] = useSearchParams()
   const filtroMateriaUrl = searchParams.get('materia') || 'todas'
 
@@ -152,12 +152,13 @@ export const AulasPage: React.FC = () => {
         materiaSelecionadaObj,
         aulas.filter((a) => a.materia_id === materiaSelecionadaObj.id),
         percentualAviso,
+        faltasRestantesAviso,
       )
     : null
 
   const statsPorMateria: MateriaStats[] = materias.map((mat) => {
     const aulasDessa = aulas.filter((a) => a.materia_id === mat.id)
-    return calcularStatsMateria(mat, aulasDessa, percentualAviso)
+    return calcularStatsMateria(mat, aulasDessa, percentualAviso, faltasRestantesAviso)
   })
   const totalAlertas = statsPorMateria.filter((s) => s.isAlerta || s.isEstourado).length
 

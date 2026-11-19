@@ -46,7 +46,7 @@ import {
 
 export const MateriasPage: React.FC = () => {
   const { toast } = useToast()
-  const { percentualAviso } = useConfiguracaoAviso()
+  const { percentualAviso, faltasRestantesAviso } = useConfiguracaoAviso()
   const [materias, setMaterias] = useState<Materia[]>([])
   const [aulas, setAulas] = useState<Aula[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -86,7 +86,7 @@ export const MateriasPage: React.FC = () => {
 
   const statsPorMateria: MateriaStats[] = materias.map((mat) => {
     const aulasDessa = aulas.filter((a) => a.materia_id === mat.id)
-    return calcularStatsMateria(mat, aulasDessa, percentualAviso)
+    return calcularStatsMateria(mat, aulasDessa, percentualAviso, faltasRestantesAviso)
   })
 
   const filtradas = statsPorMateria.filter((s) => {
@@ -163,7 +163,7 @@ export const MateriasPage: React.FC = () => {
               <span>Gerenciar Matérias</span>
             </h1>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Cadastre suas disciplinas, configure a carga horária e confira o limite de 25%.
+              Cadastre suas disciplinas, configure a carga horária e confira o limite de faltas.
             </p>
           </div>
 

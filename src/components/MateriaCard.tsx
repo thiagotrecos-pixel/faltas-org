@@ -52,7 +52,10 @@ export const MateriaCard: React.FC<MateriaCardProps> = ({
     statusBadge = {
       bg: 'bg-amber-500/15 border-amber-500/40 text-amber-300',
       icon: AlertTriangle,
-      text: 'Atenção: Perto do Limite',
+      text:
+        stats.motivoAlerta === 'faltas_restantes' && stats.gatilhoFaltasRestantes != null
+          ? `Restam ${stats.aulasRestantesPossiveis} faltáveis`
+          : 'Atenção: Perto do Limite',
     }
   }
 
@@ -145,7 +148,10 @@ export const MateriaCard: React.FC<MateriaCardProps> = ({
               >
                 {pctCarga.toFixed(1)}%
               </span>
-              <span className="text-[11px] text-zinc-500"> / máx 25%</span>
+              <span className="text-[11px] text-zinc-500">
+                {' '}
+                / máx {stats.percentualReprovacao}%
+              </span>
             </div>
             <div className="text-right">
               <span className="text-[11px] text-zinc-400">

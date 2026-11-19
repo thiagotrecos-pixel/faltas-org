@@ -9,7 +9,7 @@ import { ModalAula } from '@/components/ModalAula'
 import { Materia, Aula, MateriaStats } from '@/types'
 import { listarMaterias } from '@/services/materias'
 import { listarAulas } from '@/services/aulas'
-import { calcularStatsMateria } from '@/services/calculations'
+import { calcularStatsMateria, PERCENTUAL_REPROVACAO_PADRAO } from '@/services/calculations'
 import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -27,7 +27,7 @@ import {
 
 export const DashboardScreen: React.FC = () => {
   const { user } = useAuth()
-  const { percentualAviso } = useConfiguracaoAviso()
+  const { percentualAviso, faltasRestantesAviso } = useConfiguracaoAviso()
   const [materias, setMaterias] = useState<Materia[]>([])
   const [aulas, setAulas] = useState<Aula[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -58,7 +58,7 @@ export const DashboardScreen: React.FC = () => {
   // Calcula estatísticas para cada matéria
   const statsPorMateria: MateriaStats[] = materias.map((mat) => {
     const aulasDessa = aulas.filter((a) => a.materia_id === mat.id)
-    return calcularStatsMateria(mat, aulasDessa, percentualAviso)
+    return calcularStatsMateria(mat, aulasDessa, percentualAviso, faltasRestantesAviso)
   })
 
   // Totais globais
@@ -106,7 +106,7 @@ export const DashboardScreen: React.FC = () => {
               Painel Geral de Faltas
             </h1>
             <p className="text-xs sm:text-sm text-zinc-400">
-              Acompanhe seu teto de 25% de faltas em cada matéria e mantenha sua frequência segura.
+              Acompanhe o limite de faltas de cada matéria e mantenha sua frequência segura.
             </p>
           </div>
 
@@ -144,7 +144,11 @@ export const DashboardScreen: React.FC = () => {
         </div>
 
         {/* Global Alert Notification Banner */}
-        <AlertaBanner statsMaterias={statsPorMateria} percentualAviso={percentualAviso} />
+        <AlertaBanner
+          statsMaterias={statsPorMateria}
+          percentualAviso={percentualAviso}
+          faltasRestantesAviso={faltasRestantesAviso}
+        />
 
         {/* Key Metrics Dashboard Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -228,7 +232,7 @@ export const DashboardScreen: React.FC = () => {
               <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
                 <span>Matérias e Percentual de Faltas</span>
                 <span className="text-xs font-normal text-zinc-500">
-                  (limite de 25% da carga horária)
+                  (limite padrão de {PERCENTUAL_REPROVACAO_PADRAO}% da carga horária)
                 </span>
               </h2>
             </div>
@@ -277,7 +281,7 @@ export const DashboardScreen: React.FC = () => {
           )}
         </div>
 
-        {/* Section: Explicação didática da regra dos 25% */}
+        {/* Section: Explicação didática da regra dos 25% (percentual padrão) */}
         <div className="p-4 rounded-2xl bg-[#0f1424] border tech-border flex flex-col sm:flex-row items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 mt-0.5">
             <Sparkles className="w-5 h-5" />
@@ -288,8 +292,12 @@ export const DashboardScreen: React.FC = () => {
               Pela Lei de Diretrizes e Bases da Educação (LDB) e regimento da maioria das
               universidades brasileiras, o aluno precisa de no mínimo{' '}
               <strong className="text-zinc-200">75% de frequência</strong> para aprovação, podendo
-              faltar no máximo <strong className="text-indigo-300">25% da carga horária</strong>.
-              Nosso sistema calcula o teto de horas exatas e avisa com destaque quando você consome{' '}
+              faltar no máximo{' '}
+              <strong className="text-indigo-300">
+                {PERCENTUAL_REPROVACAO_PADRAO}% da carga horária
+              </strong>{' '}
+              (padrão; cada matéria pode ter um percentual próprio no cadastro). Nosso sistema
+              calcula o teto de horas exatas e avisa com destaque quando você consome{' '}
               <strong className="text-amber-300">{percentualAviso}% ou mais do seu limite</strong>,
               permitindo que você reaja antes de reprovar.
             </p>

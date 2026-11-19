@@ -53,7 +53,11 @@ export const MateriaCardGrade: React.FC<MateriaCardGradeProps> = ({
               </span>
             ) : item.isAlerta ? (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                Alerta {item.percentualAviso}%
+                {item.motivoAlerta === 'faltas_restantes'
+                  ? `Faltam ${item.gatilhoFaltasRestantes} aula(s)`
+                  : item.motivoAlerta === 'ambos'
+                    ? `Alerta ${item.percentualAviso}% • faltam ${item.gatilhoFaltasRestantes}`
+                    : `Alerta ${item.percentualAviso}%`}
               </span>
             ) : (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
@@ -76,7 +80,7 @@ export const MateriaCardGrade: React.FC<MateriaCardGradeProps> = ({
 
             <div className="p-2.5 rounded-xl bg-indigo-950/20 border border-indigo-500/20">
               <span className="text-[10px] uppercase font-mono text-indigo-400 block">
-                Limite 25% Faltas
+                Limite {item.percentualReprovacao}% Faltas
               </span>
               <span className="text-sm font-bold text-indigo-300">{materia.limite_faltas}h</span>
               <span className="text-[10px] text-zinc-400 block">

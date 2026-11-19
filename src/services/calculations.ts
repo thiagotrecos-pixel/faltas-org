@@ -3,15 +3,45 @@ import { PERCENTUAL_AVISO_PADRAO } from './configuracoes'
 
 /**
  * Premissas do projeto:
- * - Limite de faltas = 25% da carga horária da matéria (ex: 60h -> 15h)
- * - Alerta preventivo dispara no percentual configurado da cota de faltas
- *   (padrão 75%, editável globalmente e por matéria)
+ * - Limite de faltas = 25% da carga horária da matéria (ex: 60h -> 15h),
+ *   a menos que a matéria tenha um percentual de reprovação próprio.
+ * - Alerta dispara quando a matéria atinge o gatilho por PERCENTUAL da cota
+ *   (padrão 75%, editável globalmente e por matéria) OU o gatilho por FALTAS
+ *   RESTANTES (número global e/ou próprio da matéria) — o que ocorrer primeiro.
  */
 
-export function calcularLimiteFaltas(cargaHoraria: number): number {
+/** Percentual de reprovação padrão do app (25% da carga horária). */
+export const PERCENTUAL_REPROVACAO_PADRAO = 25
+
+export function calcularLimiteFaltas(
+  cargaHoraria: number,
+  percentualReprovacao: number = PERCENTUAL_REPROVACAO_PADRAO,
+): number {
   if (!cargaHoraria || cargaHoraria <= 0) return 0
-  // 25% da carga horária
-  return Math.round(cargaHoraria * 0.25 * 10) / 10
+  const pct =
+    percentualReprovacao > 0
+      ? Math.min(99, Math.max(1, percentualReprovacao))
+      : PERCENTUAL_REPROVACAO_PADRAO
+  return Math.round(cargaHoraria * (pct / 100) * 10) / 10
+}
+
+/**
+ * Percentual de reprovação da matéria: o valor específico quando preenchido
+ * (1–99), senão o padrão do app (25% da carga horária).
+ */
+export function percentualReprovacaoMateria(materia: Materia): number {
+  const especifico = materia.percentual_reprovacao
+  if (especifico && especifico > 0) {
+    return Math.min(99, Math.max(1, especifico))
+  }
+  return PERCENTUAL_REPROVACAO_PADRAO
+}
+
+/** Limite de faltas da matéria respeitando o percentual de reprovação próprio. */
+export function limiteFaltasMateria(materia: Materia): number {
+  if (materia.limite_faltas > 0) return materia.limite_faltas
+  const percentual = percentualReprovacaoMateria(materia) / 100
+  return Math.round(materia.carga_horaria * percentual * 10) / 10
 }
 
 /**
@@ -30,17 +60,36 @@ export function percentualAvisoMateria(
   return Math.min(99, Math.max(1, global))
 }
 
+/**
+ * Gatilho por faltas restantes da matéria: o menor valor entre o próprio
+ * da matéria e o global (o que ocorrer primeiro). Null = gatilho desativado.
+ */
+export function gatilhoFaltasRestantesMateria(
+  materia: Materia,
+  faltasRestantesGlobal: number = 0,
+): number | null {
+  const proprio = materia.faltas_restantes_aviso
+  const proprioValido = proprio != null && proprio > 0 ? Math.floor(proprio) : null
+  const globalValido = faltasRestantesGlobal > 0 ? Math.floor(faltasRestantesGlobal) : null
+
+  if (proprioValido != null && globalValido != null) return Math.min(proprioValido, globalValido)
+  return proprioValido ?? globalValido
+}
+
 export function calcularStatsMateria(
   materia: Materia,
   aulasDaMateria: Aula[],
   percentualAvisoGlobal: number = PERCENTUAL_AVISO_PADRAO,
+  faltasRestantesGlobal: number = 0,
 ): MateriaStats {
   const percentualAviso = percentualAvisoMateria(materia, percentualAvisoGlobal)
+  const percentualReprovacao = percentualReprovacaoMateria(materia)
+  const gatilhoFaltasRestantes = gatilhoFaltasRestantesMateria(materia, faltasRestantesGlobal)
 
   const horasPadraoAula =
     materia.horas_por_aula && materia.horas_por_aula > 0 ? materia.horas_por_aula : 2
   const limiteFaltas =
-    materia.limite_faltas > 0 ? materia.limite_faltas : calcularLimiteFaltas(materia.carga_horaria)
+    materia.limite_faltas > 0 ? materia.limite_faltas : limiteFaltasMateria(materia)
 
   let totalPresencas = 0
   let totalFaltas = 0
@@ -72,8 +121,24 @@ export function calcularStatsMateria(
   const aulasRestantesPossiveis = Math.max(0, Math.floor(faltasRestantesHoras / horasPadraoAula))
 
   const isEstourado = horasFaltas > limiteFaltas
-  // Alerta preventivo no percentual configurado da cota (padrão 75%)
-  const isAlerta = !isEstourado && percentualLimiteConsumido >= percentualAviso
+
+  // Gatilho 1: percentual da cota configurado
+  const isAlertaPercentual = !isEstourado && percentualLimiteConsumido >= percentualAviso
+  // Gatilho 2: faltas restantes (em aulas) chegou ao número configurado
+  const isAlertaFaltasRestantes =
+    !isEstourado &&
+    gatilhoFaltasRestantes != null &&
+    aulasRestantesPossiveis <= gatilhoFaltasRestantes
+  // O aviso dispara no gatilho que ocorrer primeiro (OU)
+  const isAlerta = isAlertaPercentual || isAlertaFaltasRestantes
+
+  const motivoAlerta: MateriaStats['motivoAlerta'] = !isAlerta
+    ? null
+    : isAlertaPercentual && isAlertaFaltasRestantes
+      ? 'ambos'
+      : isAlertaPercentual
+        ? 'percentual'
+        : 'faltas_restantes'
 
   let statusAlerta: 'seguro' | 'alerta' | 'reprovado' = 'seguro'
   if (isEstourado) {
@@ -97,7 +162,12 @@ export function calcularStatsMateria(
     aulasRestantesPossiveis,
     isAlerta,
     isEstourado,
-    statusAlerta,
     percentualAviso,
+    gatilhoFaltasRestantes,
+    motivoAlerta,
+    isAlertaPercentual,
+    isAlertaFaltasRestantes,
+    percentualReprovacao,
+    statusAlerta,
   }
 }
