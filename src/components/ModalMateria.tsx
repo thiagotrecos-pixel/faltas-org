@@ -18,7 +18,8 @@ import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
 import { PERCENTUAL_REPROVACAO_PADRAO } from '@/services/calculations'
 import { useToast } from '@/hooks/use-toast'
 import { usePeriodos } from '@/hooks/use-periodos'
-import { BookOpen, Sparkles, Clock, AlertCircle, ImagePlus, X } from 'lucide-react'
+import { SelecionadorImagemWeb } from '@/components/SelecionadorImagemWeb'
+import { BookOpen, Sparkles, Clock, AlertCircle, ImagePlus, Globe, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ModalMateriaProps {
@@ -92,6 +93,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
   const [novoArquivoImagem, setNovoArquivoImagem] = useState<File | null>(null)
   const [previewImagem, setPreviewImagem] = useState<string | null>(null)
   const [removerImagem, setRemoverImagem] = useState(false)
+  const [modoImagem, setModoImagem] = useState<'upload' | 'web'>('upload')
 
   // Atualiza estado se materiaParaEditar mudar
   React.useEffect(() => {
@@ -99,6 +101,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
     setNovoArquivoImagem(null)
     setPreviewImagem(null)
     setRemoverImagem(false)
+    setModoImagem('upload')
     setPeriodoId(materiaParaEditar?.periodo_id || '')
     if (materiaParaEditar) {
       setNome(materiaParaEditar.nome)
@@ -197,6 +200,21 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
   const removerImagemSalva = () => {
     limparImagemEscolhida()
     setRemoverImagem(true)
+  }
+
+  // Imagem escolhida na busca da web vira um File real e entra no fluxo do upload.
+  const escolherImagemWeb = (arquivo: File) => {
+    setNovoArquivoImagem(arquivo)
+    setRemoverImagem(false)
+    setPreviewImagem((anterior) => {
+      if (anterior) URL.revokeObjectURL(anterior)
+      return URL.createObjectURL(arquivo)
+    })
+    setModoImagem('upload')
+    toast({
+      title: 'Imagem da web adicionada!',
+      description: 'Salve a matéria para confirmar a nova foto.',
+    })
   }
 
   // Preview: nova imagem escolhida > imagem salva > fallback
@@ -380,28 +398,47 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
               </div>
 
               <div className="flex-1 space-y-1.5">
-                <label
-                  htmlFor="imagem-materia"
-                  className="inline-flex items-center gap-1.5 cursor-pointer rounded-full bg-indigo-600/20 border border-indigo-500/40 px-3 h-8 text-[11px] font-semibold text-indigo-300 hover:bg-indigo-600/30 transition-colors"
-                >
-                  <ImagePlus className="w-3.5 h-3.5" />
-                  {urlPreview ? 'Trocar imagem' : 'Escolher imagem'}
-                  <input
-                    id="imagem-materia"
-                    type="file"
-                    accept={TIPOS_IMAGEM.join(',')}
-                    className="sr-only"
-                    onChange={(e) => {
-                      escolherImagem(e.target.files?.[0])
-                      // Permite escolher o mesmo arquivo novamente depois
-                      e.target.value = ''
-                    }}
+                {modoImagem === 'upload' ? (
+                  <>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <label
+                        htmlFor="imagem-materia"
+                        className="inline-flex items-center gap-1.5 cursor-pointer rounded-full bg-indigo-600/20 border border-indigo-500/40 px-3 h-8 text-[11px] font-semibold text-indigo-300 hover:bg-indigo-600/30 transition-colors"
+                      >
+                        <ImagePlus className="w-3.5 h-3.5" />
+                        {urlPreview ? 'Trocar imagem' : 'Escolher imagem'}
+                        <input
+                          id="imagem-materia"
+                          type="file"
+                          accept={TIPOS_IMAGEM.join(',')}
+                          className="sr-only"
+                          onChange={(e) => {
+                            escolherImagem(e.target.files?.[0])
+                            // Permite escolher o mesmo arquivo novamente depois
+                            e.target.value = ''
+                          }}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setModoImagem('web')}
+                        className="inline-flex items-center gap-1.5 cursor-pointer rounded-full bg-cyan-600/15 border border-cyan-500/40 px-3 h-8 text-[11px] font-semibold text-cyan-300 hover:bg-cyan-600/25 transition-colors"
+                      >
+                        <Globe className="w-3.5 h-3.5" />
+                        Pesquisar na web
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-zinc-500">
+                      JPG, PNG, WebP ou GIF · máx. 5 MB. Sem imagem, a matéria usa o ícone padrão.
+                    </p>
+                  </>
+                ) : (
+                  <SelecionadorImagemWeb
+                    onEscolher={escolherImagemWeb}
+                    onVoltar={() => setModoImagem('upload')}
                   />
-                </label>
-                <p className="text-[11px] text-zinc-500">
-                  JPG, PNG, WebP ou GIF · máx. 5 MB. Sem imagem, a matéria usa o ícone padrão.
-                </p>
-                {urlPreview && (
+                )}
+                {urlPreview && modoImagem === 'upload' && (
                   <button
                     type="button"
                     onClick={removerImagemSalva}
