@@ -111,7 +111,7 @@ export async function obterConfiguracaoFaltasRestantes(): Promise<{
     try {
       const config = await pb.collection('configuracoes').create<Configuracao>({
         user_id: userId,
-        chave: CHAVE_AVISO_FALTAS_RESTATES,
+        chave: CHAVE_AVISO_FALTAS_RESTANTES,
         valor: 0,
       })
       return { config, faltasRestantes: config.valor }
@@ -156,7 +156,7 @@ async function obterOuCriarConfigFaltasRestantes(
     if (status !== 404) throw err
     const config = await pb.collection('configuracoes').create<Configuracao>({
       user_id: userId,
-      chave: CHAVE_AVISO_FALTAS_RESTATES,
+      chave: CHAVE_AVISO_FALTAS_RESTANTES,
       valor: 0,
     })
     return { config }
