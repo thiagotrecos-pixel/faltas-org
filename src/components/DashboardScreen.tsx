@@ -11,6 +11,9 @@ import { listarMaterias } from '@/services/materias'
 import { listarAulas } from '@/services/aulas'
 import { calcularStatsMateria, PERCENTUAL_REPROVACAO_PADRAO } from '@/services/calculations'
 import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
+import { usePeriodos } from '@/hooks/use-periodos'
+import { FiltroPeriodo } from '@/components/FiltroPeriodo'
+import { FILTRO_TODOS, filtroValido, pertencePeriodo } from '@/services/periodos'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -31,6 +34,9 @@ export const DashboardScreen: React.FC = () => {
   const [materias, setMaterias] = useState<Materia[]>([])
   const [aulas, setAulas] = useState<Aula[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { periodos, recarregar: recarregarPeriodos } = usePeriodos()
+  const [filtroPeriodo, setFiltroPeriodo] = useState(FILTRO_TODOS)
+  const filtroAtivo = filtroValido(filtroPeriodo, periodos)
 
   // Modais
   const [modalMateriaAberto, setModalMateriaAberto] = useState(false)
@@ -61,17 +67,26 @@ export const DashboardScreen: React.FC = () => {
     return calcularStatsMateria(mat, aulasDessa, percentualAviso, faltasRestantesAviso)
   })
 
-  // Totais globais
-  const totalCargaHoraria = materias.reduce((acc, m) => acc + (m.carga_horaria || 0), 0)
-  const totalLimiteFaltasHoras = materias.reduce((acc, m) => acc + (m.limite_faltas || 0), 0)
-  const totalHorasFaltas = statsPorMateria.reduce((acc, s) => acc + s.horasFaltas, 0)
-  const totalAulasRealizadas = statsPorMateria.reduce((acc, s) => acc + s.totalAulas, 0)
-  const totalPresencas = statsPorMateria.reduce((acc, s) => acc + s.totalPresencas, 0)
+  // Recorte pelo período selecionado: matérias e TODAS as estatísticas consideram só esse filtro
+  const statsFiltradas = statsPorMateria.filter((s) => pertencePeriodo(s.materia, filtroAtivo))
+
+  // Totais do recorte atual
+  const totalCargaHoraria = statsFiltradas.reduce(
+    (acc, s) => acc + (s.materia.carga_horaria || 0),
+    0,
+  )
+  const totalLimiteFaltasHoras = statsFiltradas.reduce(
+    (acc, s) => acc + (s.materia.limite_faltas || 0),
+    0,
+  )
+  const totalHorasFaltas = statsFiltradas.reduce((acc, s) => acc + s.horasFaltas, 0)
+  const totalAulasRealizadas = statsFiltradas.reduce((acc, s) => acc + s.totalAulas, 0)
+  const totalPresencas = statsFiltradas.reduce((acc, s) => acc + s.totalPresencas, 0)
 
   const taxaPresencaGeral =
     totalAulasRealizadas > 0 ? Math.round((totalPresencas / totalAulasRealizadas) * 100) : 100
 
-  const materiasEmAlerta = statsPorMateria.filter((s) => s.isAlerta || s.isEstourado)
+  const materiasEmAlerta = statsFiltradas.filter((s) => s.isAlerta || s.isEstourado)
 
   const handleAbrirNovaMateria = () => {
     setMateriaParaEditar(null)
@@ -84,8 +99,18 @@ export const DashboardScreen: React.FC = () => {
   }
 
   const handleLancarAula = (materiaId?: string) => {
-    setMateriaPreSelecionadaAula(materiaId || materias[0]?.id)
+    setMateriaPreSelecionadaAula(materiaId || statsFiltradas[0]?.materia.id || materias[0]?.id)
     setModalAulaAberto(true)
+  }
+
+  const nomePeriodoAtivo =
+    filtroAtivo === FILTRO_TODOS
+      ? null
+      : periodos.find((p) => p.id === filtroAtivo)?.nome || 'Sem período'
+
+  const recarregarTudo = async () => {
+    await carregarDados()
+    await recarregarPeriodos()
   }
 
   return (
@@ -108,6 +133,15 @@ export const DashboardScreen: React.FC = () => {
             <p className="text-xs sm:text-sm text-zinc-400">
               Acompanhe o limite de faltas de cada matéria e mantenha sua frequência segura.
             </p>
+            {periodos.length > 0 && (
+              <div className="mt-3">
+                <FiltroPeriodo
+                  periodos={periodos}
+                  value={filtroAtivo}
+                  onChange={setFiltroPeriodo}
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
@@ -145,7 +179,7 @@ export const DashboardScreen: React.FC = () => {
 
         {/* Global Alert Notification Banner */}
         <AlertaBanner
-          statsMaterias={statsPorMateria}
+          statsMaterias={statsFiltradas}
           percentualAviso={percentualAviso}
           faltasRestantesAviso={faltasRestantesAviso}
         />
@@ -249,27 +283,43 @@ export const DashboardScreen: React.FC = () => {
               <RefreshCw className="w-6 h-6 animate-spin text-indigo-400" />
               <p className="text-xs">Carregando matérias e cálculos de presença...</p>
             </div>
-          ) : materias.length === 0 ? (
+          ) : statsFiltradas.length === 0 ? (
             <Card className="tech-card border tech-border rounded-2xl p-12 text-center">
               <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
                 <BookOpen className="w-7 h-7" />
               </div>
-              <h3 className="text-base font-bold text-white">Nenhuma matéria cadastrada ainda</h3>
-              <p className="text-xs text-zinc-400 max-w-sm mx-auto mt-1 mb-5">
-                Comece adicionando as matérias que você está cursando neste semestre com a
-                respectiva carga horária.
-              </p>
-              <Button
-                onClick={handleAbrirNovaMateria}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-semibold px-5 h-9 shadow-lg shadow-indigo-600/30 gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Adicionar Primeira Matéria</span>
-              </Button>
+              {materias.length === 0 ? (
+                <>
+                  <h3 className="text-base font-bold text-white">
+                    Nenhuma matéria cadastrada ainda
+                  </h3>
+                  <p className="text-xs text-zinc-400 max-w-sm mx-auto mt-1 mb-5">
+                    Comece adicionando as matérias que você está cursando neste semestre com a
+                    respectiva carga horária.
+                  </p>
+                  <Button
+                    onClick={handleAbrirNovaMateria}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-semibold px-5 h-9 shadow-lg shadow-indigo-600/30 gap-1.5"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Adicionar Primeira Matéria</span>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-base font-bold text-white">
+                    Nenhuma matéria em {nomePeriodoAtivo}
+                  </h3>
+                  <p className="text-xs text-zinc-400 max-w-sm mx-auto mt-1">
+                    Selecione outro período ou volte para &ldquo;Todos&rdquo; para ver todas as
+                    matérias.
+                  </p>
+                </>
+              )}
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {statsPorMateria.map((stats) => (
+              {statsFiltradas.map((stats) => (
                 <MateriaCard
                   key={stats.materia.id}
                   stats={stats}
@@ -309,7 +359,7 @@ export const DashboardScreen: React.FC = () => {
       <ModalMateria
         isOpen={modalMateriaAberto}
         onClose={() => setModalMateriaAberto(false)}
-        onSuccess={carregarDados}
+        onSuccess={recarregarTudo}
         materiaParaEditar={materiaParaEditar}
       />
 
