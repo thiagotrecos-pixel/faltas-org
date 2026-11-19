@@ -20,6 +20,17 @@ export interface Materia {
   percentual_aviso?: number | null
   /** Nome do arquivo de imagem enviado (campo file do PocketBase). */
   imagem?: string
+  /** Período letivo da matéria (vazio/null = sem período). */
+  periodo_id?: string | null
+  created: string
+  updated: string
+}
+
+export interface Periodo {
+  id: string
+  user_id: string
+  /** Nome livre do período, ex.: "2026/2". */
+  nome: string
   created: string
   updated: string
 }

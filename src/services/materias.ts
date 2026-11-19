@@ -28,6 +28,8 @@ export interface CriarMateriaInput {
   imagem?: File | null
   /** Remove a imagem atual da matéria (envia null para o PocketBase). */
   remover_imagem?: boolean
+  /** Período da matéria (vazio/null = sem período). */
+  periodo_id?: string | null
 }
 
 /** URL pública do arquivo de imagem da matéria (thumb 600px do PocketBase). */
@@ -71,6 +73,7 @@ export async function criarMateria(dados: CriarMateriaInput): Promise<Materia> {
     limite_faltas: Number(limiteCalculado),
     horas_por_aula: Number(dados.horas_por_aula || 2),
     cor: dados.cor || '#6366f1',
+    periodo_id: dados.periodo_id || null,
     percentual_aviso:
       dados.percentual_aviso != null && dados.percentual_aviso > 0
         ? Math.min(99, Math.max(1, Math.round(dados.percentual_aviso)))
@@ -106,6 +109,7 @@ export async function atualizarMateria(
         ? Math.min(99, Math.max(1, Math.round(dados.percentual_aviso)))
         : null
   }
+  if (dados.periodo_id !== undefined) payload.periodo_id = dados.periodo_id || null
   if (dados.imagem !== undefined) payload.imagem = dados.imagem
   if (dados.remover_imagem) payload.imagem = null
 

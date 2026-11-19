@@ -19,6 +19,7 @@ import {
   Search,
   Clock,
   Sparkles,
+  CalendarDays,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
@@ -34,6 +35,10 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Link } from 'react-router-dom'
 import { AvatarMateria } from '@/components/AvatarMateria'
+import { usePeriodos } from '@/hooks/use-periodos'
+import { FiltroPeriodo } from '@/components/FiltroPeriodo'
+import { GerenciarPeriodosDialog } from '@/components/GerenciarPeriodosDialog'
+import { filtroValido, pertencePeriodo } from '@/services/periodos'
 
 export const MateriasPage: React.FC = () => {
   const { toast } = useToast()
@@ -42,6 +47,10 @@ export const MateriasPage: React.FC = () => {
   const [aulas, setAulas] = useState<Aula[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [busca, setBusca] = useState('')
+  const { periodos, recarregar: recarregarPeriodos } = usePeriodos()
+  const [filtroPeriodo, setFiltroPeriodo] = useState('todos')
+  const [gerenciarPeriodosAberto, setGerenciarPeriodosAberto] = useState(false)
+  const filtroAtivo = filtroValido(filtroPeriodo, periodos)
 
   // Modais
   const [modalMateriaAberto, setModalMateriaAberto] = useState(false)
@@ -73,6 +82,7 @@ export const MateriasPage: React.FC = () => {
 
   const filtradas = statsPorMateria.filter((s) => {
     const termo = busca.toLowerCase()
+    if (!pertencePeriodo(s.materia, filtroAtivo)) return false
     return (
       s.materia.nome.toLowerCase().includes(termo) ||
       (s.materia.codigo && s.materia.codigo.toLowerCase().includes(termo)) ||
@@ -137,6 +147,20 @@ export const MateriasPage: React.FC = () => {
           >
             <Plus className="w-4 h-4" />
             <span>Nova Matéria</span>
+          </Button>
+        </div>
+
+        {/* Período */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <FiltroPeriodo periodos={periodos} value={filtroAtivo} onChange={setFiltroPeriodo} />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setGerenciarPeriodosAberto(true)}
+            className="rounded-full border-zinc-700 bg-transparent hover:bg-white/5 text-zinc-300 text-xs h-8 px-3.5 gap-1.5 self-start sm:self-auto"
+          >
+            <CalendarDays className="w-3.5 h-3.5" />
+            Gerenciar períodos
           </Button>
         </div>
 
@@ -344,6 +368,17 @@ export const MateriasPage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Gerenciador de períodos */}
+      <GerenciarPeriodosDialog
+        isOpen={gerenciarPeriodosAberto}
+        onClose={() => setGerenciarPeriodosAberto(false)}
+        periodos={periodos}
+        onAlterado={async () => {
+          await recarregarPeriodos()
+          await carregarDados()
+        }}
+      />
 
       {/* Modal Criar / Editar Matéria */}
       <ModalMateria

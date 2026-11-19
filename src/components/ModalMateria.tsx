@@ -14,6 +14,7 @@ import { Materia } from '@/types'
 import { criarMateria, atualizarMateria, imagemMateriaUrl } from '@/services/materias'
 import { calcularLimiteFaltas } from '@/services/calculations'
 import { useToast } from '@/hooks/use-toast'
+import { usePeriodos } from '@/hooks/use-periodos'
 import { BookOpen, Sparkles, Clock, AlertCircle, ImagePlus, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -66,6 +67,8 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
     materiaParaEditar?.percentual_aviso ? String(materiaParaEditar.percentual_aviso) : '',
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { periodos } = usePeriodos()
+  const [periodoId, setPeriodoId] = useState(materiaParaEditar?.periodo_id || '')
 
   // Imagem da matéria
   const imagemAtualUrl = materiaParaEditar ? imagemMateriaUrl(materiaParaEditar) : null
@@ -79,6 +82,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
     setNovoArquivoImagem(null)
     setPreviewImagem(null)
     setRemoverImagem(false)
+    setPeriodoId(materiaParaEditar?.periodo_id || '')
     if (materiaParaEditar) {
       setNome(materiaParaEditar.nome)
       setCodigo(materiaParaEditar.codigo || '')
@@ -197,6 +201,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
             : null,
           imagem: novoArquivoImagem,
           remover_imagem: removerImagem,
+          periodo_id: periodoId || null,
         })
         toast({
           title: 'Matéria atualizada!',
@@ -215,6 +220,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
             ? Number(percentualAvisoEspecifico)
             : null,
           imagem: novoArquivoImagem,
+          periodo_id: periodoId || null,
         })
         toast({
           title: 'Matéria cadastrada!',
@@ -275,6 +281,26 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
               autoFocus
               required
             />
+          </div>
+
+          {/* Período letivo (opcional) */}
+          <div className="space-y-1.5">
+            <Label htmlFor="periodo" className="text-xs text-zinc-300">
+              Período
+            </Label>
+            <select
+              id="periodo"
+              value={periodoId}
+              onChange={(e) => setPeriodoId(e.target.value)}
+              className="w-full bg-[#151a2e] border border-zinc-700/60 focus:border-indigo-500 rounded-md text-xs h-9 px-3 text-zinc-200 outline-none [&>option]:bg-[#151a2e]"
+            >
+              <option value="">Sem período</option>
+              {periodos.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nome}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Imagem da matéria */}
