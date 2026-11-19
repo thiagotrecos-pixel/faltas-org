@@ -13,7 +13,6 @@ import {
   User,
   School,
   ArrowRight,
-  ShieldCheck,
   AlertCircle,
   HelpCircle,
 } from 'lucide-react'
@@ -140,10 +139,6 @@ export const AuthScreen: React.FC = () => {
             <LogoFaltaOrg className="block w-full h-auto" />
             <span className="sr-only">Falta.org</span>
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-sm mx-auto">
-            Monitore suas presenças, não perca o limite de 25% e evite reprovações por falta no
-            semestre.
-          </p>
         </div>
 
         {/* Demo button highlight */}
@@ -324,10 +319,6 @@ export const AuthScreen: React.FC = () => {
 
         {/* Feature Pills Footer */}
         <div className="flex flex-wrap items-center justify-center gap-2 pt-2 text-[11px] text-zinc-500">
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-900/60 border border-zinc-800">
-            <ShieldCheck className="w-3 h-3 text-indigo-400" />
-            Limite oficial de 25%
-          </span>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-900/60 border border-zinc-800">
             <AlertCircle className="w-3 h-3 text-amber-400" />
             Alertas com limite configurável

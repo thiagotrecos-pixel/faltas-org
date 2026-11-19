@@ -70,9 +70,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenNovaMateria, totalAlertas 
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-zinc-400 hidden sm:block">
-                Frequência e limite de 25%
-              </p>
             </div>
           </Link>
 

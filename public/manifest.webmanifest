@@ -1,7 +1,7 @@
 {
   "name": "Falta.org",
   "short_name": "Falta.org",
-  "description": "Controle de faltas universitário: presenças, limite de 25% e alertas antes da reprovação.",
+  "description": "Controle de faltas universitário: presenças, limites e alertas antes da reprovação.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

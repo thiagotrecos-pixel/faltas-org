@@ -7,7 +7,7 @@
  *  - Estáticos (JS/CSS/imagens da origem): stale-while-revalidate.
  */
 
-const VERSAO_CACHE = 'faltaorg-v1'
+const VERSAO_CACHE = 'faltaorg-v2'
 const SHELL = [
   '/',
   '/index.html',
