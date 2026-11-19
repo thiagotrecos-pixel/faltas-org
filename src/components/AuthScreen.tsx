@@ -135,9 +135,9 @@ export const AuthScreen: React.FC = () => {
       <div className="w-full max-w-md relative z-10 space-y-6">
         {/* Header Branding */}
         <div className="text-center space-y-2">
-          <h1 className="mx-auto w-full max-w-[280px] sm:max-w-[320px]">
-            <LogoFaltaOrg className="block w-full h-auto" />
-            <span className="sr-only">Falta.org</span>
+          <h1>
+            <LogoFaltaOrg />
+            <span className="sr-only">Falta.org — Gestão de faltas</span>
           </h1>
         </div>
 
