@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
+import { LogoFaltaOrg } from '@/components/LogoFaltaOrg'
 import {
-  GraduationCap,
   Sparkles,
   Lock,
   Mail,
@@ -136,13 +136,9 @@ export const AuthScreen: React.FC = () => {
       <div className="w-full max-w-md relative z-10 space-y-6">
         {/* Header Branding */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-cyan-400 p-0.5 shadow-xl shadow-indigo-500/25">
-            <div className="w-full h-full bg-[#0a0d18] rounded-[14px] flex items-center justify-center">
-              <GraduationCap className="w-7 h-7 text-indigo-400" />
-            </div>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Falta<span className="text-indigo-400">.org</span>
+          <h1 className="mx-auto w-full max-w-[280px] sm:max-w-[320px]">
+            <LogoFaltaOrg className="block w-full h-auto" />
+            <span className="sr-only">Falta.org</span>
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400 max-w-sm mx-auto">
             Monitore suas presenças, não perca o limite de 25% e evite reprovações por falta no

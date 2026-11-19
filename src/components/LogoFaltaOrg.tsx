@@ -1,0 +1,73 @@
+import React from 'react'
+
+interface LogoFaltaOrgProps {
+  className?: string
+}
+
+/**
+ * Logo oficial do Falta.org em SVG vetorial: capelo ciano, "FALTA" em off-white,
+ * ".ORG" em ciano e o subtítulo "GESTÃO DE FALTAS" em roxo. Sem fundo, para
+ * integrar ao tema escuro do app.
+ */
+export const LogoFaltaOrg: React.FC<LogoFaltaOrgProps> = ({ className }) => {
+  return (
+    <svg
+      viewBox="160 530 1620 830"
+      role="img"
+      aria-label="Falta.org — Gestão de faltas"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Capelo de formatura */}
+      <g fill="#5ce1e6">
+        <path d="M965 548 L1322 672 Q1332 678 1320 684 L997 800 Q968 812 968 835 Q970 855 1000 862 L1190 812 L1190 915 Q1190 1005 968 1005 Q748 1005 748 915 L748 800 Q735 790 695 778 L640 757 Q615 745 612 710 Q612 680 632 668 Z" />
+        <path
+          d="M978 672 Q760 745 712 818"
+          fill="none"
+          stroke="#5ce1e6"
+          strokeWidth="22"
+          strokeLinecap="round"
+        />
+        <path d="M704 836 L712 880 L690 960 L632 958 L660 905 Z" />
+        <circle cx="690" cy="870" r="22" />
+      </g>
+      {/* Linhas das páginas do capelo */}
+      <g stroke="#0a0d18" strokeWidth="8" strokeLinecap="round">
+        <line x1="1000" y1="815" x2="1305" y2="703" />
+        <line x1="1000" y1="828" x2="1310" y2="718" />
+        <line x1="1000" y1="842" x2="1315" y2="735" />
+      </g>
+
+      {/* Nome da marca */}
+      <text
+        x="970"
+        y="1250"
+        textAnchor="middle"
+        fontFamily="Georgia, 'Times New Roman', serif"
+        fontSize="290"
+        fontWeight="600"
+        textLength="1600"
+        lengthAdjust="spacingAndGlyphs"
+      >
+        <tspan fill="#dcdcdc">FALTA</tspan>
+        <tspan fill="#000000">.</tspan>
+        <tspan fill="#5ce1e6">ORG</tspan>
+      </text>
+
+      {/* Subtítulo */}
+      <text
+        x="967"
+        y="1340"
+        textAnchor="middle"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fontSize="80"
+        fontWeight="700"
+        fill="#8b4dff"
+        textLength="975"
+        lengthAdjust="spacingAndGlyphs"
+      >
+        GESTÃO DE FALTAS
+      </text>
+    </svg>
+  )
+}
