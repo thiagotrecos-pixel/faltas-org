@@ -28,6 +28,10 @@ export interface Materia {
   imagem?: string
   /** Período letivo da matéria (vazio/null = sem período). */
   periodo_id?: string | null
+  /** Override: pontos necessários para aprovação nesta matéria (vazio = global). */
+  pontos_media?: number | null
+  /** Override: total de pontos que o semestre desta matéria vale (vazio = global). */
+  pontos_semestre?: number | null
   created: string
   updated: string
 }
@@ -44,8 +48,25 @@ export interface Periodo {
 export interface Configuracao {
   id: string
   user_id: string
-  chave: 'aviso_preventivo' | 'aviso_faltas_restantes'
+  chave: 'aviso_preventivo' | 'aviso_faltas_restantes' | 'pontos_aprovacao' | 'total_semestre'
   valor: number
+  created: string
+  updated: string
+}
+
+/** Avaliação/prova lançada para acompanhar a aprovação por pontos. */
+export interface Avaliacao {
+  id: string
+  user_id: string
+  materia_id: string
+  /** Nome livre, ex.: "P1", "Trabalho final". */
+  nome: string
+  /** Valor/peso máximo da avaliação em pontos. */
+  valor_maximo: number
+  /** Pontos obtidos (null = nota ainda não lançada). */
+  nota_obtida?: number | null
+  /** Data livre (texto) da avaliação. */
+  data?: string
   created: string
   updated: string
 }
