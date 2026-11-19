@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T00:23:32.179Z",
+  "generatedAt": "2026-11-19T00:49:58.861Z",
   "collections": [
     {
       "name": "users",
@@ -129,6 +129,18 @@
           "type": "file",
           "required": false,
           "system": false
+        },
+        {
+          "name": "percentual_reprovacao",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "faltas_restantes_aviso",
+          "type": "number",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": ["CREATE INDEX idx_materias_user_created ON materias (user_id, created DESC)"]
@@ -225,7 +237,7 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["aviso_preventivo"]
+          "selectValues": ["aviso_preventivo", "aviso_faltas_restantes"]
         },
         {
           "name": "valor",
