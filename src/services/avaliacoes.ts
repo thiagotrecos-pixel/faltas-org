@@ -1,5 +1,5 @@
 import pb from '@/lib/pocketbase/client'
-import { Avaliacao, Materia } from '@/types'
+import { Avaliacao, Materia, Configuracao } from '@/types'
 
 /**
  * Sistema de aprovação por pontos:
@@ -169,7 +169,7 @@ function pontosDaMateria(materia: Materia | null, global: number, padrao: number
 
 /**
  * Calcula a situação de aprovação por pontos de uma matéria.
- * Usa o override da matéria (pontos_aprovacao / total_semestre) quando
+ * Usa o override da matéria (pontos_media / pontos_semestre) quando
  * preenchido; senão usa os valores globais.
  */
 export function calcularSituacaoPontos(
@@ -178,13 +178,11 @@ export function calcularSituacaoPontos(
   config: { pontosAprovacao: number; totalSemestre: number },
 ): SituacaoPontos {
   const totalSemestre =
-    materia.total_semestre && materia.total_semestre > 0
-      ? materia.total_semestre
+    materia.pontos_semestre && materia.pontos_semestre > 0
+      ? materia.pontos_semestre
       : config.totalSemestre
   const media =
-    materia.pontos_aprovacao && materia.pontos_aprovacao > 0
-      ? materia.pontos_aprovacao
-      : config.pontosAprovacao
+    materia.pontos_media && materia.pontos_media > 0 ? materia.pontos_media : config.pontosAprovacao
 
   let pontosAcumulados = 0
   let pontosPendentes = 0

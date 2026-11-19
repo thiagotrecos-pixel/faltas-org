@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T16:10:11.469Z",
+  "generatedAt": "2026-11-19T17:12:30.331Z",
   "collections": [
     {
       "name": "users",
@@ -262,7 +262,12 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["aviso_preventivo", "aviso_faltas_restantes"]
+          "selectValues": [
+            "aviso_preventivo",
+            "aviso_faltas_restantes",
+            "pontos_aprovacao",
+            "total_semestre"
+          ]
         },
         {
           "name": "valor",
