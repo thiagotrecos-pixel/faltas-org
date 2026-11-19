@@ -11,10 +11,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Materia } from '@/types'
-import { criarMateria, atualizarMateria } from '@/services/materias'
+import { criarMateria, atualizarMateria, imagemMateriaUrl } from '@/services/materias'
 import { calcularLimiteFaltas } from '@/services/calculations'
 import { useToast } from '@/hooks/use-toast'
-import { BookOpen, Sparkles, Clock, AlertCircle } from 'lucide-react'
+import { BookOpen, Sparkles, Clock, AlertCircle, ImagePlus, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface ModalMateriaProps {
   isOpen: boolean
@@ -33,6 +34,10 @@ const PALETA_CORES = [
   '#ef4444', // Red
   '#3b82f6', // Blue
 ]
+
+/** Tipos e limite de tamanho da imagem (5 MB), alinhados com a migration 0004. */
+const TIPOS_IMAGEM = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const TAMANHO_MAX_BYTES = 5 * 1024 * 1024
 
 export const ModalMateria: React.FC<ModalMateriaProps> = ({
   isOpen,
@@ -62,8 +67,18 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Imagem da matéria
+  const imagemAtualUrl = materiaParaEditar ? imagemMateriaUrl(materiaParaEditar) : null
+  const [novoArquivoImagem, setNovoArquivoImagem] = useState<File | null>(null)
+  const [previewImagem, setPreviewImagem] = useState<string | null>(null)
+  const [removerImagem, setRemoverImagem] = useState(false)
+
   // Atualiza estado se materiaParaEditar mudar
   React.useEffect(() => {
+    // Reseta sempre o estado da imagem ao (re)abrir o modal
+    setNovoArquivoImagem(null)
+    setPreviewImagem(null)
+    setRemoverImagem(false)
     if (materiaParaEditar) {
       setNome(materiaParaEditar.nome)
       setCodigo(materiaParaEditar.codigo || '')
@@ -100,6 +115,48 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
             : Number(limitePersonalizado) || limiteCalculadoAuto) / hAulaNum,
         )
       : 0
+
+  const escolherImagem = (arquivo: File | undefined) => {
+    if (!arquivo) return
+    if (!TIPOS_IMAGEM.includes(arquivo.type)) {
+      toast({
+        title: 'Formato de imagem não suportado',
+        description: 'Use uma imagem nos formatos JPG, PNG, WebP ou GIF.',
+        variant: 'destructive',
+      })
+      return
+    }
+    if (arquivo.size > TAMANHO_MAX_BYTES) {
+      toast({
+        title: 'Imagem muito grande',
+        description: 'A imagem deve ter no máximo 5 MB. Escolha um arquivo menor.',
+        variant: 'destructive',
+      })
+      return
+    }
+    setNovoArquivoImagem(arquivo)
+    setRemoverImagem(false)
+    // Libera o preview anterior para evitar vazamento de memória
+    setPreviewImagem((anterior) => {
+      if (anterior) URL.revokeObjectURL(anterior)
+      return URL.createObjectURL(arquivo)
+    })
+  }
+
+  const limparImagemEscolhida = () => {
+    if (previewImagem) URL.revokeObjectURL(previewImagem)
+    setPreviewImagem(null)
+    setNovoArquivoImagem(null)
+    setRemoverImagem(false)
+  }
+
+  const removerImagemSalva = () => {
+    limparImagemEscolhida()
+    setRemoverImagem(true)
+  }
+
+  // Preview: nova imagem escolhida > imagem salva > fallback
+  const urlPreview = removerImagem ? null : previewImagem || imagemAtualUrl
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -138,6 +195,8 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
           percentual_aviso: percentualAvisoEspecifico.trim()
             ? Number(percentualAvisoEspecifico)
             : null,
+          imagem: novoArquivoImagem,
+          remover_imagem: removerImagem,
         })
         toast({
           title: 'Matéria atualizada!',
@@ -155,19 +214,24 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
           percentual_aviso: percentualAvisoEspecifico.trim()
             ? Number(percentualAvisoEspecifico)
             : null,
+          imagem: novoArquivoImagem,
         })
         toast({
           title: 'Matéria cadastrada!',
           description: `"${nome}" cadastrada com limite de ${limiteFinal}h de faltas (25%).`,
         })
       }
+      limparImagemEscolhida()
+      setRemoverImagem(false)
       onSuccess()
       onClose()
     } catch (err: unknown) {
       console.error(err)
       toast({
         title: 'Erro ao salvar matéria',
-        description: (err as { message?: string })?.message || 'Tente novamente.',
+        description:
+          (err as { message?: string })?.message ||
+          'Não foi possível salvar a matéria (verifique a imagem). Tente novamente.',
         variant: 'destructive',
       })
     } finally {
@@ -177,7 +241,7 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md bg-[#0f1424] border tech-border text-zinc-100 shadow-2xl">
+      <DialogContent className="sm:max-w-md bg-[#0f1424] border tech-border text-zinc-100 shadow-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-1">
             <div
@@ -211,6 +275,66 @@ export const ModalMateria: React.FC<ModalMateriaProps> = ({
               autoFocus
               required
             />
+          </div>
+
+          {/* Imagem da matéria */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-zinc-300">Imagem da matéria</Label>
+            <div className="flex items-start gap-3">
+              <div
+                className={cn(
+                  'w-20 h-20 rounded-xl shrink-0 overflow-hidden border tech-border flex items-center justify-center',
+                  urlPreview
+                    ? 'bg-[#0d1020]'
+                    : 'bg-gradient-to-br from-indigo-500/25 to-cyan-500/15',
+                )}
+              >
+                {urlPreview ? (
+                  <img
+                    src={urlPreview}
+                    alt="Pré-visualização da imagem da matéria"
+                    className="w-full h-full object-cover"
+                    onError={() => setPreviewImagem(null)}
+                  />
+                ) : (
+                  <BookOpen className="w-7 h-7 text-indigo-300/90" />
+                )}
+              </div>
+
+              <div className="flex-1 space-y-1.5">
+                <label
+                  htmlFor="imagem-materia"
+                  className="inline-flex items-center gap-1.5 cursor-pointer rounded-full bg-indigo-600/20 border border-indigo-500/40 px-3 h-8 text-[11px] font-semibold text-indigo-300 hover:bg-indigo-600/30 transition-colors"
+                >
+                  <ImagePlus className="w-3.5 h-3.5" />
+                  {urlPreview ? 'Trocar imagem' : 'Escolher imagem'}
+                  <input
+                    id="imagem-materia"
+                    type="file"
+                    accept={TIPOS_IMAGEM.join(',')}
+                    className="sr-only"
+                    onChange={(e) => {
+                      escolherImagem(e.target.files?.[0])
+                      // Permite escolher o mesmo arquivo novamente depois
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+                <p className="text-[11px] text-zinc-500">
+                  JPG, PNG, WebP ou GIF · máx. 5 MB. Sem imagem, a matéria usa o ícone padrão.
+                </p>
+                {urlPreview && (
+                  <button
+                    type="button"
+                    onClick={removerImagemSalva}
+                    className="inline-flex items-center gap-1 text-[11px] text-rose-400 hover:text-rose-300 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                    {novoArquivoImagem ? 'Descartar imagem escolhida' : 'Remover imagem'}
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Código e Professor */}

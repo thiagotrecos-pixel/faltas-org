@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MateriaStats } from '@/types'
+import { imagemMateriaUrl } from '@/services/materias'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -57,6 +58,11 @@ export const MateriaCard: React.FC<MateriaCardProps> = ({
 
   const StatusIcon = statusBadge.icon
 
+  // Imagem da matéria, com fallback elegante (inicial com gradiente)
+  const urlImagem = imagemMateriaUrl(materia)
+  const [imagemFalhou, setImagemFalhou] = useState(false)
+  const inicial = materia.nome?.trim()?.charAt(0).toUpperCase() || '?'
+
   return (
     <Card className="tech-card border tech-border relative overflow-hidden group hover:border-zinc-700/80 transition-all duration-300 rounded-2xl">
       {/* Top accent glow strip with custom color */}
@@ -70,25 +76,52 @@ export const MateriaCard: React.FC<MateriaCardProps> = ({
       <CardContent className="p-5 space-y-4">
         {/* Header: Name, Code and Status badge */}
         <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: cor }}
-              />
-              <h3 className="font-bold text-base text-white tracking-tight group-hover:text-indigo-200 transition-colors">
-                {materia.nome}
-              </h3>
+          <div className="flex items-start gap-3 min-w-0">
+            {/* Imagem da matéria com fallback em gradiente */}
+            <div
+              className="relative w-14 h-14 rounded-xl shrink-0 overflow-hidden border tech-border flex items-center justify-center"
+              style={{ boxShadow: `0 0 18px -6px ${cor}66` }}
+            >
+              {urlImagem && !imagemFalhou ? (
+                <img
+                  src={urlImagem}
+                  alt={`Imagem da matéria ${materia.nome}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={() => setImagemFalhou(true)}
+                />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center text-lg font-black text-white"
+                  style={{
+                    background: `linear-gradient(135deg, ${cor}dd 0%, ${cor}55 100%)`,
+                  }}
+                >
+                  {inicial}
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-zinc-400">
-              {materia.codigo && (
-                <span className="font-mono px-2 py-0.5 rounded-md bg-zinc-800/80 border tech-border text-zinc-300 text-[11px]">
-                  {materia.codigo}
-                </span>
-              )}
-              {materia.professor && (
-                <span className="truncate max-w-[180px]">{materia.professor}</span>
-              )}
+
+            <div className="space-y-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: cor }}
+                />
+                <h3 className="font-bold text-base text-white tracking-tight group-hover:text-indigo-200 transition-colors truncate">
+                  {materia.nome}
+                </h3>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-zinc-400">
+                {materia.codigo && (
+                  <span className="font-mono px-2 py-0.5 rounded-md bg-zinc-800/80 border tech-border text-zinc-300 text-[11px]">
+                    {materia.codigo}
+                  </span>
+                )}
+                {materia.professor && (
+                  <span className="truncate max-w-[180px]">{materia.professor}</span>
+                )}
+              </div>
             </div>
           </div>
 

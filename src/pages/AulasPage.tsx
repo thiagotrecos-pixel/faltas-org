@@ -4,7 +4,7 @@ import { Navbar } from '@/components/Navbar'
 import { ModalAula } from '@/components/ModalAula'
 import { ModalMateria } from '@/components/ModalMateria'
 import { Materia, Aula, MateriaStats } from '@/types'
-import { listarMaterias } from '@/services/materias'
+import { listarMaterias, imagemMateriaUrl } from '@/services/materias'
 import { listarAulas, alternarStatusAula, excluirAula } from '@/services/aulas'
 import { calcularStatsMateria } from '@/services/calculations'
 import { useConfiguracaoAviso } from '@/hooks/use-configuracao-aviso'
@@ -196,14 +196,35 @@ export const AulasPage: React.FC = () => {
         {statsMateriaSelecionada && (
           <div className="p-4 rounded-2xl bg-[#0f1424] border tech-border flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shrink-0"
-                style={{
-                  backgroundColor: statsMateriaSelecionada.materia.cor || '#6366f1',
-                }}
-              >
-                {statsMateriaSelecionada.materia.codigo || 'MAT'}
-              </div>
+              {(() => {
+                const mat = statsMateriaSelecionada.materia
+                const url = imagemMateriaUrl(mat)
+                const corMat = mat.cor || '#6366f1'
+                return (
+                  <div
+                    className="w-10 h-10 rounded-xl shrink-0 overflow-hidden border tech-border flex items-center justify-center"
+                    style={{ boxShadow: `0 0 14px -6px ${corMat}66` }}
+                  >
+                    {url ? (
+                      <img
+                        src={url}
+                        alt={`Imagem da matéria ${mat.nome}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center font-bold text-white text-xs"
+                        style={{
+                          background: `linear-gradient(135deg, ${corMat}dd 0%, ${corMat}55 100%)`,
+                        }}
+                      >
+                        {mat.codigo || 'MAT'}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
               <div>
                 <h3 className="font-bold text-white text-base">
                   {statsMateriaSelecionada.materia.nome}

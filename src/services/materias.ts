@@ -24,6 +24,31 @@ export interface CriarMateriaInput {
   cor?: string
   /** Limite de aviso específico da matéria (1–99). Vazio = usa o global. */
   percentual_aviso?: number | null
+  /** Arquivo de imagem escolhido pelo usuário (upload). */
+  imagem?: File | null
+  /** Remove a imagem atual da matéria (envia null para o PocketBase). */
+  remover_imagem?: boolean
+}
+
+/** URL pública do arquivo de imagem da matéria (thumb 600px do PocketBase). */
+export function imagemMateriaUrl(materia: Pick<Materia, 'id' | 'imagem'>): string | null {
+  if (!materia.imagem) return null
+  return arquivoMateriaUrl(
+    materia.id,
+    (materia as { collectionId?: string }).collectionId,
+    materia.imagem,
+  )
+}
+
+/** URL pública de um arquivo do PocketBase dado o record, a coleção e o nome do arquivo. */
+export function arquivoMateriaUrl(
+  recordId: string,
+  collectionId: string | undefined,
+  filename: string,
+): string {
+  return pb.files.getURL({ id: recordId, collectionId: collectionId || 'materias' }, filename, {
+    thumb: '600x0',
+  })
 }
 
 export async function criarMateria(dados: CriarMateriaInput): Promise<Materia> {
@@ -37,7 +62,7 @@ export async function criarMateria(dados: CriarMateriaInput): Promise<Materia> {
       ? dados.limite_faltas
       : calcularLimiteFaltas(dados.carga_horaria)
 
-  const record = await pb.collection('materias').create<Materia>({
+  const payload = {
     user_id: userId,
     nome: dados.nome.trim(),
     codigo: dados.codigo?.trim() || '',
@@ -50,7 +75,10 @@ export async function criarMateria(dados: CriarMateriaInput): Promise<Materia> {
       dados.percentual_aviso != null && dados.percentual_aviso > 0
         ? Math.min(99, Math.max(1, Math.round(dados.percentual_aviso)))
         : null,
-  })
+  }
+
+  const formData = buildMateriaFormData(payload)
+  const record = await pb.collection('materias').create<Materia>(formData)
   return record
 }
 
@@ -78,9 +106,33 @@ export async function atualizarMateria(
         ? Math.min(99, Math.max(1, Math.round(dados.percentual_aviso)))
         : null
   }
+  if (dados.imagem !== undefined) payload.imagem = dados.imagem
+  if (dados.remover_imagem) payload.imagem = null
 
-  const record = await pb.collection('materias').update<Materia>(id, payload)
+  const formData = buildMateriaFormData(payload)
+  const record = await pb.collection('materias').update<Materia>(id, formData)
   return record
+}
+
+/**
+ * Monta o FormData de criação/atualização. Necessário porque o SDK do
+ * PocketBase serializa arquivos (imagem) corretamente apenas via FormData.
+ */
+function buildMateriaFormData(payload: Record<string, unknown>): FormData {
+  const formData = new FormData()
+  for (const [chave, valor] of Object.entries(payload)) {
+    if (valor === undefined) continue
+    if (valor === null) {
+      formData.append(chave, '')
+    } else if (valor instanceof File) {
+      formData.append(chave, valor)
+    } else if (typeof valor === 'number') {
+      formData.append(chave, String(valor))
+    } else {
+      formData.append(chave, String(valor))
+    }
+  }
+  return formData
 }
 
 export async function excluirMateria(id: string): Promise<boolean> {

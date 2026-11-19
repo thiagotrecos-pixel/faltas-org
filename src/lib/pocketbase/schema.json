@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-18T23:37:54.266Z",
+  "generatedAt": "2026-11-19T00:12:45.783Z",
   "collections": [
     {
       "name": "users",
@@ -121,6 +121,12 @@
         {
           "name": "percentual_aviso",
           "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "imagem",
+          "type": "file",
           "required": false,
           "system": false
         }

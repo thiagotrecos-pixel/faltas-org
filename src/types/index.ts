@@ -18,6 +18,8 @@ export interface Materia {
   horas_por_aula?: number
   cor?: string
   percentual_aviso?: number | null
+  /** Nome do arquivo de imagem enviado (campo file do PocketBase). */
+  imagem?: string
   created: string
   updated: string
 }
