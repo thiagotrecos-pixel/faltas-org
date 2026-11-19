@@ -77,7 +77,7 @@ export const ConfiguracoesPage: React.FC = () => {
     <div className="min-h-screen bg-[#070913] text-zinc-100 flex flex-col">
       <Navbar onOpenNovaMateria={() => setModalMateriaAberto(true)} totalAlertas={0} />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-28 md:pb-8 space-y-6">
         {/* Header */}
         <div className="pb-2 border-b tech-border">
           <span className="text-xs uppercase font-mono tracking-wider text-indigo-400 font-semibold">

@@ -166,7 +166,7 @@ export const AulasPage: React.FC = () => {
     <div className="min-h-screen bg-[#070913] text-zinc-100 flex flex-col">
       <Navbar onOpenNovaMateria={() => setModalMateriaAberto(true)} totalAlertas={totalAlertas} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-28 md:pb-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b tech-border">
           <div>
