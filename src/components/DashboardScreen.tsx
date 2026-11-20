@@ -160,45 +160,44 @@ export const DashboardScreen: React.FC = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Ações do topo: grade 2x2 no celular, linha única alinhada no desktop */}
+          <div className="grid grid-cols-2 gap-2 md:flex md:flex-row md:items-center md:justify-end md:gap-2.5 md:flex-wrap">
             <Button
               size="sm"
               variant="outline"
               onClick={carregarDados}
               disabled={isLoading}
-              className="rounded-full border-zinc-700 hover:bg-zinc-800 text-zinc-300 text-xs h-9 px-3 gap-1.5"
+              className="rounded-full border-zinc-700 hover:bg-zinc-800 text-zinc-300 text-xs h-9 px-3 gap-1.5 w-full md:w-auto"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               <span>Atualizar</span>
             </Button>
 
-            <div className="flex flex-col gap-2">
-              <Button
-                size="sm"
-                onClick={() => handleLancarAula()}
-                disabled={materias.length === 0}
-                className="rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold h-9 px-4 shadow-md shadow-indigo-600/30 gap-1.5"
-              >
-                <CheckSquare className="w-3.5 h-3.5" />
-                <span>Marcar Aula</span>
-              </Button>
+            <Button
+              size="sm"
+              onClick={() => handleLancarAula()}
+              disabled={materias.length === 0}
+              className="rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold h-9 px-4 shadow-md shadow-indigo-600/30 gap-1.5 w-full md:w-auto"
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              <span>Marcar Aula</span>
+            </Button>
 
-              <Button
-                size="sm"
-                onClick={() => handleLancarNota()}
-                disabled={materias.length === 0}
-                variant="outline"
-                className="rounded-full border-cyan-500/40 hover:bg-cyan-500/10 text-cyan-300 text-xs font-semibold h-9 px-4 shadow-md shadow-cyan-600/20 gap-1.5"
-              >
-                <GraduationCap className="w-3.5 h-3.5" />
-                <span>Lançar Nota</span>
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              onClick={() => handleLancarNota()}
+              disabled={materias.length === 0}
+              variant="outline"
+              className="rounded-full border-cyan-500/40 hover:bg-cyan-500/10 text-cyan-300 text-xs font-semibold h-9 px-4 shadow-md shadow-cyan-600/20 gap-1.5 w-full md:w-auto"
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>Lançar Nota</span>
+            </Button>
 
             <Button
               size="sm"
               onClick={handleAbrirNovaMateria}
-              className="rounded-full bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white text-xs font-semibold h-9 px-4 shadow-md shadow-cyan-600/20 gap-1.5"
+              className="rounded-full bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white text-xs font-semibold h-9 px-4 shadow-md shadow-cyan-600/20 gap-1.5 w-full md:w-auto"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Nova Matéria</span>
